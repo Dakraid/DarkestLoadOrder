@@ -27,6 +27,6 @@ namespace DarkestLoadOrder.ModUtility
 
         public bool  ModEnabled  { get; set; }
         public ulong ModPriority { get; set; }
-        public Source ModSource { get; set; }
+        public string ModSource { get; set; }
     }
 }

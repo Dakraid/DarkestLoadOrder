@@ -70,7 +70,7 @@ namespace DarkestLoadOrder.Json.Savegame
         public string Name { get; set; }
 
         [JsonProperty("source", Required = Required.Always)]
-        public Source Source { get; set; }
+        public string Source { get; set; }
     }
 
     public class PersistentUgcs { }
@@ -120,11 +120,6 @@ namespace DarkestLoadOrder.Json.Savegame
         public string NeverAgain { get; set; }
     }
 
-    public enum Source
-    {
-        Steam
-    };
-
     public partial class SaveData
     {
         public static SaveData FromJson(string json)
@@ -149,53 +144,11 @@ namespace DarkestLoadOrder.Json.Savegame
             DateParseHandling        = DateParseHandling.None,
             Converters =
             {
-                SourceConverter.Singleton,
                 new IsoDateTimeConverter
                 {
                     DateTimeStyles = DateTimeStyles.AssumeUniversal
                 }
             }
         };
-    }
-
-    internal class SourceConverter : JsonConverter
-    {
-        public override bool CanConvert(Type t)
-        {
-            return t == typeof(Source) || t == typeof(Source?);
-        }
-
-        public override object ReadJson(JsonReader reader, Type t, object existingValue, JsonSerializer serializer)
-        {
-            if (reader.TokenType == JsonToken.Null) return null;
-            var value = serializer.Deserialize<string>(reader);
-
-            if (value == "Steam")
-                return Source.Steam;
-
-            throw new Exception("Cannot unmarshal type Source");
-        }
-
-        public override void WriteJson(JsonWriter writer, object untypedValue, JsonSerializer serializer)
-        {
-            if (untypedValue == null)
-            {
-                serializer.Serialize(writer, null);
-
-                return;
-            }
-            var value = (Source) untypedValue;
-
-            if (value == Source.Steam)
-            {
-                serializer.Serialize(writer, "Steam");
-
-                return;
-            }
-
-            throw new Exception("Cannot marshal type Source");
-        }
-
-        public static readonly SourceConverter Singleton = new();
     }
 }
