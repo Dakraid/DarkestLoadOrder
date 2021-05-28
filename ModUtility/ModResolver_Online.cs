@@ -1,61 +1,75 @@
-﻿namespace DarkestLoadOrder.ModUtility
+﻿using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+using DarkestLoadOrder.Json.SteamWebAPI;
+
+namespace DarkestLoadOrder.ModUtility
 {
-    using System;
-    using System.IO;
-    using System.Net;
-    using System.Text;
-
-    using Json.SteamWebAPI;
-
     public class ModResolverOnline
     {
         private const string RequestUri = "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/";
 
-        public Response GetModInfo(ulong modID, bool showDebug = false)
+        public static async Task<byte[]> GetModThumbnail(Uri thumbnailUri)
         {
-            // Create a request using a URL that can receive a post.
-            var request = WebRequest.Create(RequestUri);
-            // Set the Method property of the request to POST.
-            request.Method = "POST";
+            using var httpClient = new HttpClient();
+            var       imageBytes = await httpClient.GetByteArrayAsync(thumbnailUri);
 
-            // Create POST data and convert it to a byte array.
-            var postData  = $"itemcount=1&publishedfileids[0]={modID}";
+            return imageBytes;
+        }
+
+        public static Response GetModInfos(ulong[] modIDs)
+        {
+            var postDataBuilder = new StringBuilder();
+            postDataBuilder.AppendFormat("itemcount={0}", modIDs.Length);
+
+            for (var i = 0; i < modIDs.Length; i++)
+            {
+                postDataBuilder.AppendFormat("&publishedfileids[{0}]={1}", i, modIDs[i]);
+            }
+            var postData  = postDataBuilder.ToString();
             var byteArray = Encoding.UTF8.GetBytes(postData);
 
-            // Set the ContentType property of the WebRequest.
-            request.ContentType = "application/x-www-form-urlencoded";
-            // Set the ContentLength property of the WebRequest.
+            var request = WebRequest.Create(RequestUri);
+            request.Method        = "POST";
+            request.ContentType   = "application/x-www-form-urlencoded";
             request.ContentLength = byteArray.Length;
 
-            // Get the request stream.
             var dataStream = request.GetRequestStream();
-            // Write the data to the request stream.
             dataStream.Write(byteArray, 0, byteArray.Length);
-            // Close the Stream object.
             dataStream.Close();
 
-            // Get the response.
-            var response = request.GetResponse();
-            // Display the status.
-            // MessageBox.Show(((HttpWebResponse) response).StatusDescription);
+            using var response           = request.GetResponse();
+            using var responseStream     = response.GetResponseStream();
+            var       reader             = new StreamReader(responseStream ?? throw new InvalidOperationException());
+            var       responseFromServer = reader.ReadToEnd();
 
-            // Get the stream containing content returned by the server.
-            // The using block ensures the stream is automatically closed.
-            using var responseStream = response.GetResponseStream();
+            return PublishedFileDetails.FromJson(responseFromServer)?.Response;
+        }
 
-            // Open the stream using a StreamReader for easy access.
-            var reader = new StreamReader(responseStream ?? throw new InvalidOperationException());
-            // Read the content.
-            var responseFromServer = reader.ReadToEnd();
-            // Display the content.
-            // MessageBox.Show(responseFromServer);
+        public static Response GetModInfo(ulong modId)
+        {
+            var postData  = $"itemcount=1&publishedfileids[0]={modId}";
+            var byteArray = Encoding.UTF8.GetBytes(postData);
 
-            // Close the response.
-            response.Close();
+            var request = WebRequest.Create(RequestUri);
+            request.Method        = "POST";
+            request.ContentType   = "application/x-www-form-urlencoded";
+            request.ContentLength = byteArray.Length;
 
-            var responseData = PublishedFileDetails.FromJson(responseFromServer);
+            var dataStream = request.GetRequestStream();
+            dataStream.Write(byteArray, 0, byteArray.Length);
+            dataStream.Close();
 
-            return responseData?.Response;
+            using var response           = request.GetResponse();
+            using var responseStream     = response.GetResponseStream();
+            var       reader             = new StreamReader(responseStream ?? throw new InvalidOperationException());
+            var       responseFromServer = reader.ReadToEnd();
+
+            return PublishedFileDetails.FromJson(responseFromServer)?.Response;
         }
     }
 }

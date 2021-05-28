@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 
 namespace DarkestLoadOrder.Threading
 {
@@ -30,7 +31,6 @@ namespace DarkestLoadOrder.Threading
 
             public void Execute()
             {
-                // TODO
                 if (!File.Exists(@".\savedata_in.json"))
                 {
                     return;
@@ -62,7 +62,6 @@ namespace DarkestLoadOrder.Threading
 
             public void Execute()
             {
-                // TODO
                 if (!File.Exists(_profilePath + "\\" + _selectedProfile + "\\persist.game.json"))
                 {
                     return;
@@ -83,23 +82,51 @@ namespace DarkestLoadOrder.Threading
                 _modList     = ml;
             }
 
-            public void Execute()
+            public async void Execute()
             {
-                var modResolveOnline = new ModResolverOnline();
+                var apiResponse = ModResolverOnline.GetModInfos(_modList.Keys.ToArray());
 
-                foreach (var (mod, path) in _modList)
+                foreach (var publishedfiledetail in apiResponse.Publishedfiledetails)
                 {
-                    var apiResponse = modResolveOnline.GetModInfo(mod);
-
-                    var modItem = new ModItem
+                    var modItem = new ModDatabaseItem
                     {
-                        ModTitle       = apiResponse.publishedfiledetails[0].title,
-                        ModDescription = apiResponse.publishedfiledetails[0].description
+                        ModPublishedId = publishedfiledetail.Publishedfileid,
+                        ModTitle       = publishedfiledetail.Title,
+                        ModDescription = publishedfiledetail.Description,
+                        ModThumbnail   = await ModResolverOnline.GetModThumbnail(publishedfiledetail.PreviewUrl)
                     };
 
-                    if (!_modDatabase.Mods.ContainsKey(mod))
-                        _modDatabase.Mods.Add(mod, modItem);
+
+                    if (!_modDatabase.KnownMods.ContainsKey(publishedfiledetail.Publishedfileid))
+                        _modDatabase.KnownMods.Add(publishedfiledetail.Publishedfileid, modItem);
                 }
+            }
+        }
+
+        public class ResolveModTask {
+            private readonly ModDatabase _modDatabase;
+            private readonly ulong       _mod;
+
+            public ResolveModTask(ModDatabase mdb, ulong md)
+            {
+                _modDatabase = mdb;
+                _mod         = md;
+            }
+
+            public async void Execute()
+            {
+                var apiResponse      = ModResolverOnline.GetModInfo(_mod);
+                
+                var modItem = new ModDatabaseItem
+                {
+                    ModPublishedId = apiResponse.Publishedfiledetails[0].Publishedfileid,
+                    ModTitle       = apiResponse.Publishedfiledetails[0].Title,
+                    ModDescription = apiResponse.Publishedfiledetails[0].Description,
+                    ModThumbnail   = await ModResolverOnline.GetModThumbnail(apiResponse.Publishedfiledetails[0].PreviewUrl)
+                };
+
+                if (!_modDatabase.KnownMods.ContainsKey(_mod))
+                    _modDatabase.KnownMods.Add(_mod, modItem);
             }
         }
     }

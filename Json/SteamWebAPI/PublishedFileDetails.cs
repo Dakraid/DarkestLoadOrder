@@ -1,22 +1,22 @@
 ﻿//    using DarkestLoadOrder.Json.SteamWebAPI;
 //    var publishedFileDetails = PublishedFileDetails.FromJson(jsonString);
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace DarkestLoadOrder.Json.SteamWebAPI
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     public partial class PublishedFileDetails
     {
         [JsonProperty("response")]
         public Response Response { get; set; }
     }
 
-    public partial class Response
+    public class Response
     {
         [JsonProperty("result")]
         public long Result { get; set; }
@@ -28,10 +28,10 @@ namespace DarkestLoadOrder.Json.SteamWebAPI
         public List<Publishedfiledetail> Publishedfiledetails { get; set; }
     }
 
-    public partial class Publishedfiledetail
+    public class Publishedfiledetail
     {
         [JsonProperty("publishedfileid")]
-        public string Publishedfileid { get; set; }
+        public ulong Publishedfileid { get; set; }
 
         [JsonProperty("result")]
         public long Result { get; set; }
@@ -103,7 +103,7 @@ namespace DarkestLoadOrder.Json.SteamWebAPI
         public List<Tag> Tags { get; set; }
     }
 
-    public partial class Tag
+    public class Tag
     {
         [JsonProperty("tag")]
         public string TagTag { get; set; }

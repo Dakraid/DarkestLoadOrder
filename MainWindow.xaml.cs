@@ -1,4 +1,9 @@
-﻿using DarkestLoadOrder.Threading;
+﻿using System.Collections.ObjectModel;
+
+using DarkestLoadOrder.Json.Savegame;
+using DarkestLoadOrder.Utility;
+
+using GongSolutions.Wpf.DragDrop;
 
 namespace DarkestLoadOrder
 {
@@ -9,6 +14,8 @@ namespace DarkestLoadOrder
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Media;
+
+    using Threading;
 
     using ModUtility;
 
@@ -36,77 +43,11 @@ namespace DarkestLoadOrder
         private readonly Configuration _configuration;
         private readonly ModDatabase   _modDatabase = new();
 
-        private Dictionary<string, string> _profileList;
-        private Dictionary<ulong, string>  _modList;
+        public Dictionary<string, string> _profileList;
+        public Dictionary<ulong, string>  _modList;
 
         private string _lastProcessedSave;
         private string _lastProcessedMods;
-
-        private Dictionary<string, string> ScanProfiles(string savePath)
-        {
-            if (string.IsNullOrWhiteSpace(savePath) || !Directory.Exists(savePath))
-                return null;
-
-            var files = Directory.GetFiles(savePath).ToList();
-
-            if (!files.Select(Path.GetFileName).Contains("steam_init.json"))
-            {
-                MessageBox.Show(this, "The application could not find 'steam_init.json', please make sure you selected the right folder.");
-
-                return null;
-            }
-
-            var directories = Directory.GetDirectories(savePath).Where(dir => dir.Contains("profile")).ToList();
-            var profiles    = directories.Select(Path.GetFileName).ToList();
-
-            if (profiles.Count == 0)
-            {
-                MessageBox.Show(this, "The application could not find any valid profile folders, please make sure you have selected the right folder and have a saved game.");
-
-                return null;
-            }
-
-            brd_SaveFolderIndicator.Background = new SolidColorBrush(Color.FromRgb(0, 255, 0));
-
-            return profiles.Zip(directories, (k, v) => new
-                           {
-                               k, v
-                           })
-                           .ToDictionary(x => x.k, x => x.v);
-        }
-
-        private Dictionary<ulong, string> ScanMods(string modPath)
-        {
-            if (string.IsNullOrWhiteSpace(modPath) || !Directory.Exists(modPath))
-                return null;
-
-            var directories = Directory.GetDirectories(modPath).ToList();
-            var mods        = directories.Select(dir => ulong.Parse(Path.GetFileName(dir))).ToList();
-
-            if (!(modPath.Contains("workshop") && modPath.Contains("262060")))
-            {
-                MessageBox.Show(this, "The application could not verify the workshop folder structure, please make sure you selected the right folder.");
-
-                return null;
-            }
-
-            brd_ModFolderIndicator.Background = new SolidColorBrush(Color.FromRgb(0, 255, 0));
-
-            return mods.Zip(directories, (k, v) => new
-                       {
-                           k, v
-                       })
-                       .ToDictionary(x => x.k, x => x.v);
-        }
-
-        private void PopulateProfiles(IReadOnlyCollection<string> profiles)
-        {
-            if (!profiles.Any())
-                return;
-
-            foreach (var profile in profiles)
-                cbx_ProfileSelect.Items.Add(profile);
-        }
 
         private Configuration InitConfiguration()
         {
@@ -156,11 +97,11 @@ namespace DarkestLoadOrder
             txb_SaveFolder.Text = _configuration.SaveFolderPath;
             txb_ModFolder.Text  = _configuration.ModFolderPath;
 
-            _profileList = ScanProfiles(_configuration.SaveFolderPath);
-            _modList     = ScanMods(_configuration.ModFolderPath);
+            _profileList = Scanner.ScanProfiles(_configuration.SaveFolderPath, brd_SaveFolderIndicator);
+            _modList     = Scanner.ScanMods(_configuration.ModFolderPath, brd_ModFolderIndicator);
 
             if (_profileList != null && _profileList.Count > 0)
-                PopulateProfiles(_profileList.Keys);
+                Scanner.PopulateProfiles(cbx_ProfileSelect, _profileList.Keys);
         }
 
         private void btn_SelectSaveFolder_Click(object sender, RoutedEventArgs e)
@@ -174,15 +115,16 @@ namespace DarkestLoadOrder
             if (!VistaFolderBrowserDialog.IsVistaFolderDialogSupported)
                 MessageBox.Show(this, "Because you are not using Windows Vista or later, the regular folder browser dialog will be used. Please use Windows Vista to see the new dialog.", "Sample folder browser dialog");
 
+            // ReSharper disable once PossibleInvalidOperationException
             if (!(bool) dialog.ShowDialog(this))
                 return;
 
             _configuration.SaveFolderPath = dialog.SelectedPath;
-            _profileList                  = ScanProfiles(_configuration.SaveFolderPath);
+            _profileList                  = Scanner.ScanProfiles(_configuration.SaveFolderPath, brd_SaveFolderIndicator);
             txb_SaveFolder.Text           = _configuration.SaveFolderPath;
 
             if (_profileList != null && _profileList.Count > 0)
-                PopulateProfiles(_profileList.Keys);
+                Scanner.PopulateProfiles(cbx_ProfileSelect, _profileList.Keys);
         }
 
         private void btn_SelectModFolder_Click(object sender, RoutedEventArgs e)
@@ -196,17 +138,58 @@ namespace DarkestLoadOrder
             if (!VistaFolderBrowserDialog.IsVistaFolderDialogSupported)
                 MessageBox.Show(this, "Because you are not using Windows Vista or later, the regular folder browser dialog will be used. Please use Windows Vista to see the new dialog.", "Sample folder browser dialog");
 
+            // ReSharper disable once PossibleInvalidOperationException
             if (!(bool) dialog.ShowDialog(this))
                 return;
 
             _configuration.ModFolderPath = dialog.SelectedPath;
-            _modList                     = ScanMods(_configuration.ModFolderPath);
+            _modList                     = Scanner.ScanMods(_configuration.ModFolderPath, brd_ModFolderIndicator);
             txb_ModFolder.Text           = _configuration.ModFolderPath;
         }
 
         private void cbx_ProfileSelect_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             brd_ProfileIndicator.Background = new SolidColorBrush(Color.FromRgb(0, 255, 0));
+            var newSelect = e.AddedItems[0]?.ToString();
+
+            if (string.IsNullOrWhiteSpace(newSelect))
+                return;
+
+            var loadProfileTask   = new Tasks.LoadProfileTask(_modDatabase, _configuration.SaveFolderPath, newSelect);
+            var loadProfileThread = new Thread(loadProfileTask.Execute);
+            loadProfileThread.Start();
+
+            while (loadProfileThread.IsAlive)
+                Thread.Sleep(500);
+
+            var saveData = SaveData.FromJson(File.ReadAllText(@".\savedata_out.json"));
+
+            foreach (var modUGC in saveData.BaseRoot.AppliedUgcs1_0)
+            {
+                var modId    = ulong.Parse(modUGC.Value.Name);
+                _modDatabase.KnownMods.TryGetValue(modId, out var modItem);
+
+                var localMod = new ModLocalItem(modItem)
+                {
+                    ModEnabled = true, ModPriority = ulong.Parse(modUGC.Key), ModSource = modUGC.Value.Source
+                };
+                
+                lbx_LoadOrder.Items.Add(localMod.ModTitle);
+            }
+
+            /*
+            foreach (var (loadorder, modUGC) in saveData.BaseRoot.AppliedUgcs1_0)
+            {
+                var mod = ulong.Parse(modUGC.Name);
+                _modDatabase.Mods.TryGetValue(mod, out var ModItem);
+
+                if (ModItem == null)
+                    continue;
+
+                modList.Add(mod, ModItem.ModTitle);
+                lbx_LoadOrder.Items.Add(ModItem.ModTitle);
+            }
+            */
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -235,10 +218,10 @@ namespace DarkestLoadOrder
             if (!Directory.Exists(targetDir))
                 return;
 
-            _profileList = ScanProfiles(targetDir);
+            _profileList = Scanner.ScanProfiles(targetDir, brd_SaveFolderIndicator);
 
             if (_profileList != null && _profileList.Count > 0)
-                PopulateProfiles(_profileList.Keys);
+                Scanner.PopulateProfiles(cbx_ProfileSelect, _profileList.Keys);
         }
 
         private async void txb_ModFolder_TextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
@@ -261,16 +244,21 @@ namespace DarkestLoadOrder
             if (!Directory.Exists(targetDir))
                 return;
 
-            _modList = ScanMods(targetDir);
+            _modList = Scanner.ScanMods(targetDir, brd_ModFolderIndicator);
         }
 
-        private void TestPOST_Click(object sender, RoutedEventArgs e)
+        private void TestPOST1_Click(object sender, RoutedEventArgs e)
+        {
+            var resolveModTask   = new Tasks.ResolveModTask(_modDatabase, _modList.Keys.First());
+            var resolveModThread = new Thread(resolveModTask.Execute);
+            resolveModThread.Start();
+        }
+
+        private void TestPOST2_Click(object sender, RoutedEventArgs e)
         {
             var resolveModsTask   = new Tasks.ResolveModsTask(_modDatabase, _modList);
             var resolveModsThread = new Thread(resolveModsTask.Execute);
             resolveModsThread.Start();
-
-            _modDatabase.WriteDatabase();
         }
 
         private void TestREAD_Click(object sender, RoutedEventArgs e)
@@ -288,7 +276,7 @@ namespace DarkestLoadOrder
             if (string.IsNullOrWhiteSpace(cbx_ProfileSelect.Text))
                 return;
 
-            var saveProfileTask   = new Tasks.LoadProfileTask(_modDatabase, _configuration.SaveFolderPath, cbx_ProfileSelect.Text);
+            var saveProfileTask   = new Tasks.SaveProfileTask(_modDatabase, _configuration.SaveFolderPath, cbx_ProfileSelect.Text);
             var saveProfileThread = new Thread(saveProfileTask.Execute);
             saveProfileThread.Start();
         }

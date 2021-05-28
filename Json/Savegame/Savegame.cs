@@ -1,15 +1,15 @@
 ﻿//    using DarkestLoadOrder.Json.Savegame;
 //    var saveData = SaveData.FromJson(jsonString);
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace DarkestLoadOrder.Json.Savegame
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     public partial class SaveData
     {
         [JsonProperty("__revision_dont_touch", Required = Required.Always)]
@@ -19,7 +19,7 @@ namespace DarkestLoadOrder.Json.Savegame
         public BaseRoot BaseRoot { get; set; }
     }
 
-    public partial class BaseRoot
+    public class BaseRoot
     {
         [JsonProperty("version", Required = Required.Always)]
         public long Version { get; set; }
@@ -64,7 +64,7 @@ namespace DarkestLoadOrder.Json.Savegame
         public bool DlcInit { get; set; }
     }
 
-    public partial class AppliedUgcs1_0
+    public class AppliedUgcs1_0
     {
         [JsonProperty("name", Required = Required.Always)]
         public string Name { get; set; }
@@ -73,15 +73,15 @@ namespace DarkestLoadOrder.Json.Savegame
         public Source Source { get; set; }
     }
 
-    public partial class PersistentUgcs { }
+    public class PersistentUgcs { }
 
-    public partial class ProfileOptions
+    public class ProfileOptions
     {
         [JsonProperty("values", Required = Required.Always)]
         public Values Values { get; set; }
     }
 
-    public partial class Values
+    public class Values
     {
         [JsonProperty("quest_select_warnings", Required = Required.Always)]
         public bool[] QuestSelectWarnings { get; set; }
