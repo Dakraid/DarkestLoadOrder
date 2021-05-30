@@ -8,100 +8,42 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-
 using DarkestLoadOrder.Json.Savegame;
-using DarkestLoadOrder.ModUtility;
+using DarkestLoadOrder.ModHelper;
 using DarkestLoadOrder.Threading;
 using DarkestLoadOrder.Utility;
-
-using Newtonsoft.Json;
-
 using Ookii.Dialogs.Wpf;
 
 namespace DarkestLoadOrder
 {
-    public class Configuration
-    {
-        public string SaveFolderPath { get; set; }
-
-        // public Dictionary<string, string> ProfileList { get; set; }
-        public string ModFolderPath { get; set; }
-        // public Dictionary<string, string> ModList { get; set; }
-    }
-
     /// <summary>
     ///     Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const string ConfigPath = @".\DarkestLoadOrder.json";
-        private const int    TypeDelay  = 1000;
+        private const int TypeDelay = 1000;
 
-        private readonly Configuration _configuration;
-        private readonly ModDatabase   _modDatabase = new();
+        private readonly Config _config = new();
+        private readonly ModDatabase _modDatabase = new();
 
-        private          string        _lastProcessedMods;
-        private          string        _lastProcessedSave;
+        private string _lastProcessedMods;
+        private string _lastProcessedSave;
 
-        public  Dictionary<ulong, string>  _modList;
-        public  Dictionary<string, string> _profileList;
-
-        public int ActiveModCount => 16;
-        public int TotalModCount  => 35;
+        public Dictionary<ulong, string> _modList;
+        public Dictionary<string, string> _profileList;
 
         public MainWindow()
         {
-            _configuration = InitConfiguration();
-
             InitializeComponent();
 
-            txb_SaveFolder.Text = _configuration.SaveFolderPath;
-            txb_ModFolder.Text  = _configuration.ModFolderPath;
+            txb_SaveFolder.Text = _config.Properties.SaveFolderPath;
+            txb_ModFolder.Text = _config.Properties.ModFolderPath;
 
-            _profileList = Scanner.ScanProfiles(_configuration.SaveFolderPath, brd_SaveFolderIndicator);
-            _modList     = Scanner.ScanMods(_configuration.ModFolderPath, brd_ModFolderIndicator);
+            _profileList = _config.ScanProfiles(brd_SaveFolderIndicator);
+            _modList = _config.ScanMods(brd_ModFolderIndicator);
 
             if (_profileList != null && _profileList.Count > 0)
-                Scanner.PopulateProfiles(cbx_ProfileSelect, _profileList.Keys);
-        }
-
-        private Configuration InitConfiguration()
-        {
-            if (!File.Exists(ConfigPath))
-            {
-                File.Create(ConfigPath);
-
-                return new Configuration();
-            }
-
-            var tempConfig = JsonConvert.DeserializeObject<Configuration>(File.ReadAllText(ConfigPath));
-
-            if (tempConfig == null)
-            {
-                MessageBox.Show(this, "Could not deserialize the configuration file, creating anew.");
-
-                return new Configuration();
-            }
-
-            var savePath = Directory.Exists(tempConfig.SaveFolderPath);
-            var modPath  = Directory.Exists(tempConfig.ModFolderPath);
-
-            if (savePath && modPath) return tempConfig;
-
-            MessageBox.Show(this, $"Verification of the data paths failed. Please reselect the failed path.\nSave Folder is valid: {savePath}\nMod Folder is valid: {modPath}");
-
-            if (!savePath)
-                tempConfig.SaveFolderPath = null;
-
-            if (!modPath)
-                tempConfig.ModFolderPath = null;
-
-            return tempConfig;
-        }
-
-        private void WriteConfiguration()
-        {
-            File.WriteAllText(ConfigPath, JsonConvert.SerializeObject(_configuration));
+                _config.PopulateProfiles(cbx_ProfileSelect, _profileList.Keys);
         }
 
         private void btn_SelectSaveFolder_Click(object sender, RoutedEventArgs e)
@@ -112,18 +54,20 @@ namespace DarkestLoadOrder
             };
 
             if (!VistaFolderBrowserDialog.IsVistaFolderDialogSupported)
-                MessageBox.Show(this, "Because you are not using Windows Vista or later, the regular folder browser dialog will be used. Please use Windows Vista to see the new dialog.", "Sample folder browser dialog");
+                MessageBox.Show(this,
+                    "Because you are not using Windows Vista or later, the regular folder browser dialog will be used. Please use Windows Vista to see the new dialog.",
+                    "Sample folder browser dialog");
 
             // ReSharper disable once PossibleInvalidOperationException
             if (!(bool) dialog.ShowDialog(this))
                 return;
 
-            _configuration.SaveFolderPath = dialog.SelectedPath;
-            _profileList                  = Scanner.ScanProfiles(_configuration.SaveFolderPath, brd_SaveFolderIndicator);
-            txb_SaveFolder.Text           = _configuration.SaveFolderPath;
+            _config.Properties.SaveFolderPath = dialog.SelectedPath;
+            _profileList = _config.ScanProfiles(brd_SaveFolderIndicator);
+            txb_SaveFolder.Text = _config.Properties.SaveFolderPath;
 
             if (_profileList != null && _profileList.Count > 0)
-                Scanner.PopulateProfiles(cbx_ProfileSelect, _profileList.Keys);
+                _config.PopulateProfiles(cbx_ProfileSelect, _profileList.Keys);
         }
 
         private void btn_SelectModFolder_Click(object sender, RoutedEventArgs e)
@@ -134,15 +78,17 @@ namespace DarkestLoadOrder
             };
 
             if (!VistaFolderBrowserDialog.IsVistaFolderDialogSupported)
-                MessageBox.Show(this, "Because you are not using Windows Vista or later, the regular folder browser dialog will be used. Please use Windows Vista to see the new dialog.", "Sample folder browser dialog");
+                MessageBox.Show(this,
+                    "Because you are not using Windows Vista or later, the regular folder browser dialog will be used. Please use Windows Vista to see the new dialog.",
+                    "Sample folder browser dialog");
 
             // ReSharper disable once PossibleInvalidOperationException
             if (!(bool) dialog.ShowDialog(this))
                 return;
 
-            _configuration.ModFolderPath = dialog.SelectedPath;
-            _modList                     = Scanner.ScanMods(_configuration.ModFolderPath, brd_ModFolderIndicator);
-            txb_ModFolder.Text           = _configuration.ModFolderPath;
+            _config.Properties.ModFolderPath = dialog.SelectedPath;
+            _modList = _config.ScanMods(brd_ModFolderIndicator);
+            txb_ModFolder.Text = _config.Properties.ModFolderPath;
         }
 
         private void cbx_ProfileSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -153,7 +99,7 @@ namespace DarkestLoadOrder
             if (string.IsNullOrWhiteSpace(newSelect))
                 return;
 
-            var loadProfileTask   = new Tasks.LoadProfileTask(_modDatabase, _configuration.SaveFolderPath, newSelect);
+            var loadProfileTask = new Tasks.LoadProfileTask(_modDatabase, _config.Properties.SaveFolderPath, newSelect);
             var loadProfileThread = new Thread(loadProfileTask.Execute);
             loadProfileThread.Start();
 
@@ -162,6 +108,8 @@ namespace DarkestLoadOrder
 
             var saveData = SaveData.FromJson(File.ReadAllText(@".\savedata_out.json"));
 
+            Dictionary<ulong, ModLocalItem> LoadOrder = new();
+
             foreach (var modUGC in saveData.BaseRoot.AppliedUgcs1_0)
             {
                 var modId = ulong.Parse(modUGC.Value.Name);
@@ -169,18 +117,33 @@ namespace DarkestLoadOrder
 
                 var localMod = new ModLocalItem(modItem)
                 {
-                    ModEnabled = true, ModPriority = ulong.Parse(modUGC.Key), ModSource = modUGC.Value.Source
+                    ModEnabled = true,
+                    ModPriority = ulong.Parse(modUGC.Key),
+                    ModSource = modUGC.Value.Source
+                };
+                LoadOrder.Add(modId, localMod);
+            }
+
+            foreach (var (modId, modItem) in _modDatabase.KnownMods)
+            {
+                var localMod = new ModLocalItem(modItem)
+                {
+                    ModEnabled = false,
+                    ModPriority = 999,
+                    ModSource = "Steam"
                 };
 
-                _modDatabase.ProfileMods.Add(modId, localMod);
-                lbx_LoadOrder.Items.Add(localMod);
+                if (!LoadOrder.ContainsKey(modId))
+                    LoadOrder.Add(modId, localMod);
             }
+
+            foreach (var (modId, localMod) in LoadOrder) lbx_LoadOrder.Items.Add(localMod);
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             _modDatabase.WriteDatabase();
-            WriteConfiguration();
+            _config.WriteConfiguration();
         }
 
         private async void txb_SaveFolder_TextInput(object sender, TextCompositionEventArgs e)
@@ -203,10 +166,10 @@ namespace DarkestLoadOrder
             if (!Directory.Exists(targetDir))
                 return;
 
-            _profileList = Scanner.ScanProfiles(targetDir, brd_SaveFolderIndicator);
+            _profileList = _config.ScanProfiles(brd_SaveFolderIndicator);
 
             if (_profileList != null && _profileList.Count > 0)
-                Scanner.PopulateProfiles(cbx_ProfileSelect, _profileList.Keys);
+                _config.PopulateProfiles(cbx_ProfileSelect, _profileList.Keys);
         }
 
         private async void txb_ModFolder_TextInput(object sender, TextCompositionEventArgs e)
@@ -229,21 +192,21 @@ namespace DarkestLoadOrder
             if (!Directory.Exists(targetDir))
                 return;
 
-            _modList = Scanner.ScanMods(targetDir, brd_ModFolderIndicator);
+            _modList = _config.ScanMods(brd_ModFolderIndicator);
         }
 
         // DEBUG FUNCTIONALITY
 
         private void TestPOST1_Click(object sender, RoutedEventArgs e)
         {
-            var resolveModTask   = new Tasks.ResolveModTask(_modDatabase, _modList.Keys.First());
+            var resolveModTask = new Tasks.ResolveModTask(_modDatabase, _modList.Keys.First());
             var resolveModThread = new Thread(resolveModTask.Execute);
             resolveModThread.Start();
         }
 
         private void TestPOST2_Click(object sender, RoutedEventArgs e)
         {
-            var resolveModsTask   = new Tasks.ResolveModsTask(_modDatabase, _modList);
+            var resolveModsTask = new Tasks.ResolveModsTask(_modDatabase, _modList);
             var resolveModsThread = new Thread(resolveModsTask.Execute);
             resolveModsThread.Start();
         }
@@ -253,7 +216,8 @@ namespace DarkestLoadOrder
             if (string.IsNullOrWhiteSpace(cbx_ProfileSelect.Text))
                 return;
 
-            var loadProfileTask   = new Tasks.LoadProfileTask(_modDatabase, _configuration.SaveFolderPath, cbx_ProfileSelect.Text);
+            var loadProfileTask =
+                new Tasks.LoadProfileTask(_modDatabase, _config.Properties.SaveFolderPath, cbx_ProfileSelect.Text);
             var loadProfileThread = new Thread(loadProfileTask.Execute);
             loadProfileThread.Start();
         }
@@ -263,7 +227,8 @@ namespace DarkestLoadOrder
             if (string.IsNullOrWhiteSpace(cbx_ProfileSelect.Text))
                 return;
 
-            var saveProfileTask   = new Tasks.SaveProfileTask(_modDatabase, _configuration.SaveFolderPath, cbx_ProfileSelect.Text);
+            var saveProfileTask =
+                new Tasks.SaveProfileTask(_modDatabase, _config.Properties.SaveFolderPath, cbx_ProfileSelect.Text);
             var saveProfileThread = new Thread(saveProfileTask.Execute);
             saveProfileThread.Start();
         }

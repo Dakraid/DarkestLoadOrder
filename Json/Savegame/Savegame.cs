@@ -1,10 +1,8 @@
 ﻿//    using DarkestLoadOrder.Json.Savegame;
 //    var saveData = SaveData.FromJson(jsonString);
 
-using System;
 using System.Collections.Generic;
 using System.Globalization;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -73,7 +71,9 @@ namespace DarkestLoadOrder.Json.Savegame
         public string Source { get; set; }
     }
 
-    public class PersistentUgcs { }
+    public class PersistentUgcs
+    {
+    }
 
     public class ProfileOptions
     {
@@ -141,7 +141,7 @@ namespace DarkestLoadOrder.Json.Savegame
         public static readonly JsonSerializerSettings Settings = new()
         {
             MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
-            DateParseHandling        = DateParseHandling.None,
+            DateParseHandling = DateParseHandling.None,
             Converters =
             {
                 new IsoDateTimeConverter

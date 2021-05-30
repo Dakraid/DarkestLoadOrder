@@ -1,26 +1,23 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using DarkestLoadOrder.ModHelper;
 
 namespace DarkestLoadOrder.Threading
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Runtime.InteropServices;
-
-    using ModUtility;
-
     internal class Tasks
     {
         public class SaveProfileTask
         {
             private readonly ModDatabase _modDatabase;
-            private readonly string      _profilePath;
-            private readonly string      _selectedProfile;
+            private readonly string _profilePath;
+            private readonly string _selectedProfile;
 
             public SaveProfileTask(ModDatabase mdb, string pp, string sp)
             {
-                _modDatabase     = mdb;
-                _profilePath     = pp;
+                _modDatabase = mdb;
+                _profilePath = pp;
                 _selectedProfile = sp;
             }
 
@@ -31,10 +28,7 @@ namespace DarkestLoadOrder.Threading
 
             public void Execute()
             {
-                if (!File.Exists(@".\savedata_in.json"))
-                {
-                    return;
-                }
+                if (!File.Exists(@".\savedata_in.json")) return;
 
                 TryParseJSON();
 
@@ -45,13 +39,13 @@ namespace DarkestLoadOrder.Threading
         public class LoadProfileTask
         {
             private readonly ModDatabase _modDatabase;
-            private readonly string      _profilePath;
-            private readonly string      _selectedProfile;
+            private readonly string _profilePath;
+            private readonly string _selectedProfile;
 
             public LoadProfileTask(ModDatabase mdb, string pp, string sp)
             {
-                _modDatabase     = mdb;
-                _profilePath     = pp;
+                _modDatabase = mdb;
+                _profilePath = pp;
                 _selectedProfile = sp;
             }
 
@@ -62,24 +56,22 @@ namespace DarkestLoadOrder.Threading
 
             public void Execute()
             {
-                if (!File.Exists(_profilePath + "\\" + _selectedProfile + "\\persist.game.json"))
-                {
-                    return;
-                }
+                if (!File.Exists(_profilePath + "\\" + _selectedProfile + "\\persist.game.json")) return;
                 File.Copy(_profilePath + "\\" + _selectedProfile + "\\persist.game.json", @".\savedata_in.dson", true);
 
                 TryParseBin();
             }
         }
 
-        public class ResolveModsTask {
-            private readonly ModDatabase               _modDatabase;
+        public class ResolveModsTask
+        {
+            private readonly ModDatabase _modDatabase;
             private readonly Dictionary<ulong, string> _modList;
 
             public ResolveModsTask(ModDatabase mdb, Dictionary<ulong, string> ml)
             {
                 _modDatabase = mdb;
-                _modList     = ml;
+                _modList = ml;
             }
 
             public async void Execute()
@@ -91,9 +83,9 @@ namespace DarkestLoadOrder.Threading
                     var modItem = new ModDatabaseItem
                     {
                         ModPublishedId = publishedfiledetail.Publishedfileid,
-                        ModTitle       = publishedfiledetail.Title,
+                        ModTitle = publishedfiledetail.Title,
                         ModDescription = publishedfiledetail.Description,
-                        ModThumbnail   = await ModResolverOnline.GetModThumbnail(publishedfiledetail.PreviewUrl)
+                        ModThumbnail = await ModResolverOnline.GetModThumbnail(publishedfiledetail.PreviewUrl)
                     };
 
 
@@ -103,26 +95,28 @@ namespace DarkestLoadOrder.Threading
             }
         }
 
-        public class ResolveModTask {
+        public class ResolveModTask
+        {
+            private readonly ulong _mod;
             private readonly ModDatabase _modDatabase;
-            private readonly ulong       _mod;
 
             public ResolveModTask(ModDatabase mdb, ulong md)
             {
                 _modDatabase = mdb;
-                _mod         = md;
+                _mod = md;
             }
 
             public async void Execute()
             {
-                var apiResponse      = ModResolverOnline.GetModInfo(_mod);
-                
+                var apiResponse = ModResolverOnline.GetModInfo(_mod);
+
                 var modItem = new ModDatabaseItem
                 {
                     ModPublishedId = apiResponse.Publishedfiledetails[0].Publishedfileid,
-                    ModTitle       = apiResponse.Publishedfiledetails[0].Title,
+                    ModTitle = apiResponse.Publishedfiledetails[0].Title,
                     ModDescription = apiResponse.Publishedfiledetails[0].Description,
-                    ModThumbnail   = await ModResolverOnline.GetModThumbnail(apiResponse.Publishedfiledetails[0].PreviewUrl)
+                    ModThumbnail =
+                        await ModResolverOnline.GetModThumbnail(apiResponse.Publishedfiledetails[0].PreviewUrl)
                 };
 
                 if (!_modDatabase.KnownMods.ContainsKey(_mod))
