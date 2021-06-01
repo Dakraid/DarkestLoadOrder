@@ -1,19 +1,36 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using DarkestLoadOrder.ModHelper;
-using DarkestLoadOrder.Utility;
-
-namespace DarkestLoadOrder.Model
+﻿namespace DarkestLoadOrder.Model
 {
+    using System.Collections.ObjectModel;
+    using System.ComponentModel;
+    using System.Runtime.CompilerServices;
+
+    using JetBrains.Annotations;
+
+    using ModHelper;
+
+    using Utility;
+
     public class Application : INotifyPropertyChanged
     {
-        public ObservableDictionary<ulong, ModLocalItem> ActiveMods;
-        public ObservableDictionary<ulong, ModLocalItem> LocalMods;
-        public ObservableCollection<string> Profiles;
+        private ObservableDictionary<ulong, ModLocalItem> _activeMods = new();
+        private ObservableDictionary<ulong, ModLocalItem> _localMods  = new();
+        private ObservableCollection<string>              _profiles   = new();
         
         private string _saveFolderPath;
         private string _modFolderPath;
         private string _selectedProfile;
+
+        private bool _modsLoaded;
+
+        public bool ModsLoaded
+        {
+            get => _modsLoaded;
+            set
+            {
+                _modsLoaded = value;
+                OnPropertyChanged();
+            }
+        }
 
         public string SaveFolderPath
         {
@@ -21,7 +38,7 @@ namespace DarkestLoadOrder.Model
             set
             {
                 _saveFolderPath = value;
-                OnPropertyChanged("SaveFolderPath");
+                OnPropertyChanged();
             }
         }
 
@@ -31,7 +48,7 @@ namespace DarkestLoadOrder.Model
             set
             {
                 _modFolderPath = value;
-                OnPropertyChanged("ModFolderPath");
+                OnPropertyChanged();
             }
         }
 
@@ -41,17 +58,47 @@ namespace DarkestLoadOrder.Model
             set
             {
                 _selectedProfile = value;
-                OnPropertyChanged("SelectedProfile");
+                OnPropertyChanged();
             }
         }
 
-        #region INotifyPropertyChanged Members
+        public ObservableCollection<string> Profiles
+        {
+            get => _profiles;
+            set
+            {
+                _profiles = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableDictionary<ulong, ModLocalItem> LocalMods
+        {
+            get => _localMods;
+            set
+            {
+                _localMods = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableDictionary<ulong, ModLocalItem> ActiveMods
+        {
+            get => _activeMods;
+            set
+            {
+                _activeMods = value;
+                OnPropertyChanged();
+            }
+        }
+
+
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void OnPropertyChanged(string propertyName)
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        #endregion
     }
 }

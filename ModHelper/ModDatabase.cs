@@ -4,25 +4,25 @@ using Newtonsoft.Json;
 
 namespace DarkestLoadOrder.ModHelper
 {
-    public class xModDatabase
+    public class ModDatabase
     {
-        private const string dbPath = @".\DarkestLoadOrder.database.json";
+        private const string DBPath = @".\DarkestLoadOrder.database.json";
 
         private string _databaseText;
 
         public Dictionary<ulong, ModDatabaseItem> KnownMods = new();
 
-        public xModDatabase()
+        public ModDatabase()
         {
             ReadDatabase();
         }
 
-        public async void ReadDatabase()
+        public void ReadDatabase()
         {
-            if (!File.Exists(dbPath))
+            if (!File.Exists(DBPath))
                 return;
 
-            _databaseText = await File.ReadAllTextAsync(dbPath);
+            _databaseText = File.ReadAllText(DBPath);
 
             var tempItems = JsonConvert.DeserializeObject<Dictionary<ulong, ModDatabaseItem>>(_databaseText);
 
@@ -34,7 +34,7 @@ namespace DarkestLoadOrder.ModHelper
 
         public void WriteDatabase()
         {
-            File.WriteAllText(dbPath, JsonConvert.SerializeObject(KnownMods));
+            File.WriteAllText(DBPath, JsonConvert.SerializeObject(KnownMods));
         }
     }
 }
