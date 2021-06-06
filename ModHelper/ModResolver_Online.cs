@@ -1,4 +1,15 @@
-﻿namespace DarkestLoadOrder.ModHelper
+﻿// --------------------------------------------------------------------------------------------------------------------
+// Filename : ModResolver_Online.cs
+// Project: DarkestLoadOrder / DarkestLoadOrder
+// Author : Kristian Schlikow (kristian@schlikow.de)
+// Created On : 31.05.2021 00:13
+// Last Modified On : 06.06.2021 14:38
+// Copyrights : Copyright (c) Kristian Schlikow 2021-2021, All Rights Reserved
+// License: License is provided as described within the LICENSE file shipped with the project
+// If present, the license takes precedence over the individual notice within this file
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace DarkestLoadOrder.ModHelper
 {
     using System;
     using System.Collections.Generic;
@@ -22,21 +33,19 @@
 
             return imageBytes;
         }
+
         public static async Task<Dictionary<ulong, ModLocalItem>> GetModInfos(string modFolderPath, HashSet<ulong> knownMods)
         {
             var directories = Directory.GetDirectories(modFolderPath);
 
             if (directories.Length == 0)
-            {
                 return null;
-            }
 
             List<ulong> modIDs = new();
+
             foreach (var directory in directories)
-            {
                 if (ulong.TryParse(Path.GetFileName(directory), out var modId) && !knownMods.Contains(modId))
                     modIDs.Add(modId);
-            }
 
             return await GetModInfos(modIDs.ToArray());
         }
@@ -47,16 +56,13 @@
             var directories = Directory.GetDirectories(modFolderPath);
 
             if (directories.Length == 0)
-            {
                 return null;
-            }
 
             List<ulong> modIDs = new();
+
             foreach (var directory in directories)
-            {
                 if (ulong.TryParse(Path.GetFileName(directory), out var modId))
                     modIDs.Add(modId);
-            }
 
             return await GetModInfos(modIDs.ToArray());
         }

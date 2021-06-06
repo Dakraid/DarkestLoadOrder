@@ -1,4 +1,15 @@
-﻿namespace DarkestLoadOrder.Utility
+﻿// --------------------------------------------------------------------------------------------------------------------
+// Filename : ObservableDictionary.cs
+// Project: DarkestLoadOrder / DarkestLoadOrder
+// Author : Kristian Schlikow (kristian@schlikow.de)
+// Created On : 31.05.2021 00:13
+// Last Modified On : 06.06.2021 14:38
+// Copyrights : Copyright (c) Kristian Schlikow 2021-2021, All Rights Reserved
+// License: License is provided as described within the LICENSE file shipped with the project
+// If present, the license takes precedence over the individual notice within this file
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace DarkestLoadOrder.Utility
 {
     using System;
     using System.Collections.Generic;
@@ -70,7 +81,7 @@
         public bool ContainsKey(TKey key)
         {
             return !Equals(default(ObservableKeyValuePair<TKey, TValue>),
-                ThisAsCollection().FirstOrDefault(i => Equals(key, i.Key)));
+                       ThisAsCollection().FirstOrDefault(i => Equals(key, i.Key)));
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)

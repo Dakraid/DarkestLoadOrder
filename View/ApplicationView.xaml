@@ -8,7 +8,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:DarkestLoadOrder.ViewModel"
     xmlns:converter="clr-namespace:DarkestLoadOrder.Utility"
-    xmlns:calcBinding="clr-namespace:CalcBinding;assembly=CalcBinding"
     d:DataContext="{d:DesignInstance Type=model:ApplicationViewModel}"
     mc:Ignorable="d"
     Title="{Binding Application.SelectedProfile, FallbackValue=Darkest Load Order Tool, StringFormat=Darkest Load Order Tool | Selected Profile: \{0\}, TargetNullValue=Darkest Load Order Tool}"
@@ -35,7 +34,7 @@
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
 
-                    <Button x:Name="btn_SelectSaveFolder" 
+                    <Button x:Name="btn_SelectSaveFolder"
                             Grid.Row="0" Grid.Column="0" Margin="4,2"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             FontSize="14"
@@ -44,23 +43,23 @@
 
                     <TextBox x:Name="txb_SaveFolder"
                              Grid.Row="0" Grid.Column="1" Margin="4,2"
-                             VerticalAlignment="Stretch" 
+                             VerticalAlignment="Stretch"
                              FontSize="16"
                              Text="{Binding Application.SaveFolderPath}" />
 
-                    <Button x:Name="btn_SelectModFolder" 
+                    <Button x:Name="btn_SelectModFolder"
                             Grid.Row="1" Grid.Column="0" Margin="4,2"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             FontSize="14"
-                            Content="Select Workshop Folder..." 
+                            Content="Select Workshop Folder..."
                             Click="btn_SelectModFolder_Click" />
 
                     <TextBox x:Name="txb_ModFolder" Grid.Row="1" Grid.Column="1" Margin="4,2"
-                             VerticalAlignment="Stretch" 
+                             VerticalAlignment="Stretch"
                              FontSize="16"
                              Text="{Binding Application.ModFolderPath}" />
 
-                    <Label Grid.Column="0" Grid.Row="2" Margin="4,0"  
+                    <Label Grid.Column="0" Grid.Row="2" Margin="4,0"
                            HorizontalAlignment="Center" VerticalAlignment="Stretch"
                            FontSize="16"
                            Content="Select your profile:" />
@@ -73,22 +72,23 @@
                                 <Setter Property="Content" Value="Mods are being loaded. Please wait." />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Application.ModsLoaded}" Value="True">
-                                        <Setter Property="Content" Value="Mods have been loaded. You can select your profile now." />
+                                        <Setter Property="Content"
+                                                Value="Mods have been loaded. You can select your profile now." />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Label.Style>
                     </Label>
 
-                    <Label Grid.Column="1" Grid.Row="3" Margin="4,0" 
+                    <Label Grid.Column="1" Grid.Row="3" Margin="4,0"
                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                            Content="The profile shown here corresponds to the save-slot of your save-file, eg. your save in slot 0 is called 'profile__0'" />
 
-                    <ComboBox x:Name="cbx_ProfileSelect" 
+                    <ComboBox x:Name="cbx_ProfileSelect"
                               Grid.Row="3" Grid.Column="0" Margin="4,2"
-                              HorizontalContentAlignment="Center" 
+                              HorizontalContentAlignment="Center"
                               ItemsSource="{Binding Application.Profiles}"
-                              IsEnabled="{Binding Application.ModsLoaded}" 
+                              IsEnabled="{Binding Application.ModsLoaded}"
                               SelectionChanged="cbx_ProfileSelect_SelectionChanged" />
                 </Grid>
             </TabItem>
@@ -108,7 +108,7 @@
                     <GroupBox Grid.Column="0" Header="{Binding Path=Application.LocalMods.Count}"
                               HeaderStringFormat="Available Mods: {0}">
                         <ListBox x:Name="lbx_AvailableMods"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  HorizontalContentAlignment="Stretch"
                                  dd:DragDrop.UseDefaultEffectDataTemplate="True"
                                  dd:DragDrop.IsDragSource="True"
@@ -120,13 +120,14 @@
 
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="{x:Type ListBoxItem}">
-                                    <Setter Property="Width" Value="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType={x:Type ScrollContentPresenter}}}"/>
+                                    <Setter Property="Width"
+                                            Value="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType={x:Type ScrollContentPresenter}}}" />
                                 </Style>
                             </ListBox.ItemContainerStyle>
 
                             <ListBox.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="Open in Explorer..." Click="click_OpenInExplorer"/>
+                                    <MenuItem Header="Open in Explorer..." Click="click_OpenInExplorer" />
                                 </ContextMenu>
                             </ListBox.ContextMenu>
 
@@ -158,7 +159,7 @@
                                         <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Margin="1"
                                                Source="{Binding Path= Value.ModThumbnail}" />
 
-                                        <Label Grid.Column="1" Grid.Row="0" 
+                                        <Label Grid.Column="1" Grid.Row="0"
                                                FontSize="14" FontWeight="Bold"
                                                HorizontalAlignment="Stretch" VerticalAlignment="Center"
                                                Content="{Binding Path= Value.ModTitle}" />
@@ -186,13 +187,14 @@
 
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="{x:Type ListBoxItem}">
-                                    <Setter Property="Width" Value="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType={x:Type ScrollContentPresenter}}}"/>
+                                    <Setter Property="Width"
+                                            Value="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType={x:Type ScrollContentPresenter}}}" />
                                 </Style>
                             </ListBox.ItemContainerStyle>
 
                             <ListBox.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="Open in Explorer..." Click="click_OpenInExplorer"/>
+                                    <MenuItem Header="Open in Explorer..." Click="click_OpenInExplorer" />
                                 </ContextMenu>
                             </ListBox.ContextMenu>
 
@@ -252,9 +254,10 @@
                                             </Label.Content>
                                         </Label>
 
-                                        <Label Grid.Column="2" Grid.Row="1" 
+                                        <Label Grid.Column="2" Grid.Row="1"
                                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Content="{Binding Path= Value.ModSource}" ContentStringFormat="Source: {0}" />
+                                               Content="{Binding Path= Value.ModSource}"
+                                               ContentStringFormat="Source: {0}" />
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -269,7 +272,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Button x:Name="btn_SortAvail" Grid.Column="0" Margin="2,4"
-                                Content="Sort Available Alphabetically" 
+                                Content="Sort Available Alphabetically"
                                 Click="btn_SortAvail_Click" />
 
                         <Button Grid.Column="1" Margin="2,4,2,4"

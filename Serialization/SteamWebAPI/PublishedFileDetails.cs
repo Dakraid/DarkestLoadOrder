@@ -1,4 +1,15 @@
-﻿//    using DarkestLoadOrder.Json.SteamWebAPI;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// Filename : PublishedFileDetails.cs
+// Project: DarkestLoadOrder / DarkestLoadOrder
+// Author : Kristian Schlikow (kristian@schlikow.de)
+// Created On : 28.05.2021 02:09
+// Last Modified On : 06.06.2021 14:38
+// Copyrights : Copyright (c) Kristian Schlikow 2021-2021, All Rights Reserved
+// License: License is provided as described within the LICENSE file shipped with the project
+// If present, the license takes precedence over the individual notice within this file
+// --------------------------------------------------------------------------------------------------------------------
+
+//    using DarkestLoadOrder.Json.SteamWebAPI;
 //    var publishedFileDetails = PublishedFileDetails.FromJson(jsonString);
 
 namespace DarkestLoadOrder.Serialization.SteamWebAPI

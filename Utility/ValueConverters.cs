@@ -1,4 +1,15 @@
-﻿namespace DarkestLoadOrder.Utility
+﻿// --------------------------------------------------------------------------------------------------------------------
+// Filename : ValueConverters.cs
+// Project: DarkestLoadOrder / DarkestLoadOrder
+// Author : Kristian Schlikow (kristian@schlikow.de)
+// Created On : 02.06.2021 12:05
+// Last Modified On : 06.06.2021 14:38
+// Copyrights : Copyright (c) Kristian Schlikow 2021-2021, All Rights Reserved
+// License: License is provided as described within the LICENSE file shipped with the project
+// If present, the license takes precedence over the individual notice within this file
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace DarkestLoadOrder.Utility
 {
     using System;
     using System.Globalization;
@@ -34,16 +45,16 @@
             while (true)
                 switch (from)
                 {
-                case null:
-                    return null;
+                    case null:
+                        return null;
 
-                case T candidate:
-                    return candidate;
+                    case T candidate:
+                        return candidate;
 
-                default:
-                    from = VisualTreeHelper.GetParent(from);
+                    default:
+                        from = VisualTreeHelper.GetParent(from);
 
-                    break;
+                        break;
                 }
         }
     }

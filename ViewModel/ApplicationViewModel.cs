@@ -1,4 +1,15 @@
-﻿namespace DarkestLoadOrder.ViewModel
+﻿// --------------------------------------------------------------------------------------------------------------------
+// Filename : ApplicationViewModel.cs
+// Project: DarkestLoadOrder / DarkestLoadOrder
+// Author : Kristian Schlikow (kristian@schlikow.de)
+// Created On : 31.05.2021 00:13
+// Last Modified On : 06.06.2021 14:38
+// Copyrights : Copyright (c) Kristian Schlikow 2021-2021, All Rights Reserved
+// License: License is provided as described within the LICENSE file shipped with the project
+// If present, the license takes precedence over the individual notice within this file
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace DarkestLoadOrder.ViewModel
 {
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -8,18 +19,20 @@
 
     using GongSolutions.Wpf.DragDrop;
 
+    using Model;
+
     using ModHelper;
 
     using Utility;
 
     using Application = Model.Application;
+    using DragDrop = GongSolutions.Wpf.DragDrop.DragDrop;
 
     internal class ApplicationViewModel : ViewModelBase, IDropTarget
     {
-        private bool _loadedProfile;
-
         private Application _application;
-        private Config      _config;
+        private Config _config;
+        private bool _loadedProfile;
         private ModDatabase _modDatabase;
 
         public ApplicationViewModel()
@@ -35,7 +48,7 @@
 
             if (string.IsNullOrWhiteSpace(_application.ModFolderPath))
                 return;
-            
+
             ModDatabase.ReadDatabase(Application.ModFolderPath);
             ResolveMods();
         }
@@ -90,26 +103,26 @@
 
         void IDropTarget.DragOver(IDropInfo dropInfo)
         {
-            GongSolutions.Wpf.DragDrop.DragDrop.DefaultDropHandler.DragOver(dropInfo);
+            DragDrop.DefaultDropHandler.DragOver(dropInfo);
 
             var sourceItem = dropInfo.Data as ObservableKeyValuePair<ulong, ModLocalItem>;
             var targetItem = dropInfo.TargetItem as ObservableKeyValuePair<ulong, ModLocalItem>;
 
             if (sourceItem == null || targetItem == null)
                 return;
-            
+
             dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
             dropInfo.Effects           = DragDropEffects.Move;
         }
 
         void IDropTarget.Drop(IDropInfo dropInfo)
         {
-            
             // The default drop handler don't know how to set an item's group. You need to explicitly set the group on the dropped item like this.
-            GongSolutions.Wpf.DragDrop.DragDrop.DefaultDropHandler.Drop(dropInfo);
+            DragDrop.DefaultDropHandler.Drop(dropInfo);
 
             // Now extract the dragged group items and set the new group (target)
             var data = DefaultDropHandler.ExtractData(dropInfo.Data).OfType<ObservableKeyValuePair<ulong, ModLocalItem>>().ToList();
+
             foreach (var groupedItem in data)
             {
                 // groupedItem.Group = dropInfo.TargetGroup.Name.ToString();
@@ -117,9 +130,7 @@
 
             // Changing group data at runtime isn't handled well: force a refresh on the collection view.
             if (dropInfo.TargetCollection is ICollectionView view)
-            {
                 view.Refresh();
-            }
         }
 
         private async void ResolveMods()

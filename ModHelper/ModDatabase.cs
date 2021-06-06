@@ -1,11 +1,21 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// Filename : ModDatabase.cs
+// Project: DarkestLoadOrder / DarkestLoadOrder
+// Author : Kristian Schlikow (kristian@schlikow.de)
+// Created On : 31.05.2021 00:13
+// Last Modified On : 06.06.2021 14:38
+// Copyrights : Copyright (c) Kristian Schlikow 2021-2021, All Rights Reserved
+// License: License is provided as described within the LICENSE file shipped with the project
+// If present, the license takes precedence over the individual notice within this file
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace DarkestLoadOrder.ModHelper
 {
+    using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
-    using System.Windows.Documents;
+
+    using Newtonsoft.Json;
 
     public class ModDatabase
     {
@@ -34,9 +44,10 @@ namespace DarkestLoadOrder.ModHelper
 
             List<ulong> existingMods = new();
 
-            if (!string.IsNullOrWhiteSpace(modFolderPath)) 
+            if (!string.IsNullOrWhiteSpace(modFolderPath))
             {
                 var directories = Directory.GetDirectories(modFolderPath);
+
                 if (directories.Length != 0)
                 {
                     foreach (var directory in directories)

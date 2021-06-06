@@ -1,4 +1,15 @@
-﻿namespace DarkestLoadOrder.Model
+﻿// --------------------------------------------------------------------------------------------------------------------
+// Filename : Application.cs
+// Project: DarkestLoadOrder / DarkestLoadOrder
+// Author : Kristian Schlikow (kristian@schlikow.de)
+// Created On : 31.05.2021 00:13
+// Last Modified On : 06.06.2021 14:38
+// Copyrights : Copyright (c) Kristian Schlikow 2021-2021, All Rights Reserved
+// License: License is provided as described within the LICENSE file shipped with the project
+// If present, the license takes precedence over the individual notice within this file
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace DarkestLoadOrder.Model
 {
     using System.Collections.ObjectModel;
     using System.ComponentModel;
@@ -13,18 +24,19 @@
     public class Application : INotifyPropertyChanged
     {
         private ObservableDictionary<ulong, ModLocalItem> _activeMods = new();
-        private ObservableDictionary<ulong, ModLocalItem> _localMods  = new();
-        private ObservableCollection<string>              _profiles   = new();
-        
-        private string _saveFolderPath;
+        private ObservableDictionary<ulong, ModLocalItem> _localMods = new();
         private string _modFolderPath;
-        private string _selectedProfile;
 
         private bool _modsLoaded;
+        private ObservableCollection<string> _profiles = new();
+
+        private string _saveFolderPath;
+        private string _selectedProfile;
 
         public bool ModsLoaded
         {
             get => _modsLoaded;
+
             set
             {
                 _modsLoaded = value;
@@ -35,6 +47,7 @@
         public string SaveFolderPath
         {
             get => _saveFolderPath;
+
             set
             {
                 _saveFolderPath = value;
@@ -45,6 +58,7 @@
         public string ModFolderPath
         {
             get => _modFolderPath;
+
             set
             {
                 _modFolderPath = value;
@@ -55,6 +69,7 @@
         public string SelectedProfile
         {
             get => _selectedProfile;
+
             set
             {
                 _selectedProfile = value;
@@ -65,6 +80,7 @@
         public ObservableCollection<string> Profiles
         {
             get => _profiles;
+
             set
             {
                 _profiles = value;
@@ -75,6 +91,7 @@
         public ObservableDictionary<ulong, ModLocalItem> LocalMods
         {
             get => _localMods;
+
             set
             {
                 _localMods = value;
@@ -85,6 +102,7 @@
         public ObservableDictionary<ulong, ModLocalItem> ActiveMods
         {
             get => _activeMods;
+
             set
             {
                 _activeMods = value;
