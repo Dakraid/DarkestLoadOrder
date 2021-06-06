@@ -17,8 +17,6 @@ namespace DarkestLoadOrder.ModHelper
         {
             return new() { ModPublishedId = x.ModPublishedId, ModTitle = x.ModTitle, ModDescription = x.ModDescription, ModThumbnail = x.ModThumbnail };
         }
-
-        public bool ModEnabled { get; set; } = false;
         public long ModPriority { get; set; } = -1;
         public string ModSource { get; set; } = "Unknown";
     }

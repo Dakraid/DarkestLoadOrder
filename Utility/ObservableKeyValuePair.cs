@@ -1,27 +1,26 @@
-﻿using System;
-using System.ComponentModel;
-
-namespace DarkestLoadOrder.Utility
+﻿namespace DarkestLoadOrder.Utility
 {
+    using System;
+    using System.ComponentModel;
+
     [Serializable]
     public sealed class ObservableKeyValuePair<TKey, TValue> : INotifyPropertyChanged
     {
-        private TKey _key;
+        private TKey   _key;
         private TValue _value;
 
-        public ObservableKeyValuePair()
-        {
-        }
+        public ObservableKeyValuePair() { }
 
         public ObservableKeyValuePair(TKey key, TValue value)
         {
-            _key = key;
+            _key   = key;
             _value = value;
         }
 
         public TKey Key
         {
             get => _key;
+
             set
             {
                 _key = value;
@@ -32,6 +31,7 @@ namespace DarkestLoadOrder.Utility
         public TValue Value
         {
             get => _value;
+
             set
             {
                 _value = value;
@@ -39,7 +39,8 @@ namespace DarkestLoadOrder.Utility
             }
         }
 
-        [field: NonSerialized] public event PropertyChangedEventHandler PropertyChanged;
+        [field: NonSerialized]
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public void OnPropertyChanged(string name)
         {

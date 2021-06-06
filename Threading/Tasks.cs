@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using DarkestLoadOrder.ModHelper;
-
-namespace DarkestLoadOrder.Threading
+﻿namespace DarkestLoadOrder.Threading
 {
+    using System;
+    using System.IO;
+    using System.Runtime.InteropServices;
+    using System.Windows;
+
     internal class Tasks
     {
         public class SaveProfileTask
@@ -13,24 +12,38 @@ namespace DarkestLoadOrder.Threading
             private readonly string _profilePath;
             private readonly string _selectedProfile;
 
-            public SaveProfileTask(string pp, string sp)
+            public SaveProfileTask(string profilePath, string selectedProfile)
             {
-                _profilePath = pp;
-                _selectedProfile = sp;
+                _profilePath     = profilePath;
+                _selectedProfile = selectedProfile;
             }
 
             // TryParseJSON() is a Rust function
-            // It reads in a savedata_in.json and outputs a savedata_out.dson
+            // It reads in a savedata_out.json and outputs a savedata_out.dson
             [DllImport("ddsavelib.dll")]
             private static extern void TryParseJSON();
 
             public void Execute()
             {
-                if (!File.Exists(@".\temp\savedata_in.json")) return;
+                if (!File.Exists(@".\temp\savedata_out.json")) return;
 
-                TryParseJSON();
+                try
+                {
+                    TryParseJSON();
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show("The program ran into an error:\n" + e.Message);
 
-                // File.Copy(@".\temp\savedata_out.dson", _profilePath + "\\" + _selectedProfile + "\\persist.game.json");
+                    return;
+                }
+
+                var targetFile = _profilePath + "\\" + _selectedProfile + "\\persist.game.json";
+
+                File.Copy(targetFile, targetFile + ".bak", true);
+                File.Copy(@".\temp\savedata_out.dson", targetFile, true);
+
+                MessageBox.Show("Your changes have been saved!");
             }
         }
 
@@ -39,29 +52,36 @@ namespace DarkestLoadOrder.Threading
             private readonly string _profilePath;
             private readonly string _selectedProfile;
 
-            public LoadProfileTask(string pp, string sp)
+            public LoadProfileTask(string profilePath, string selectedProfile)
             {
-                _profilePath = pp;
-                _selectedProfile = sp;
+                _profilePath     = profilePath;
+                _selectedProfile = selectedProfile;
             }
 
             // TryParseBin() is a Rust function
-            // It reads in a savedata_in.dson and outputs a savedata_out.json
+            // It reads in a savedata_in.dson and outputs a savedata_in.json
             [DllImport("ddsavelib.dll")]
             private static extern void TryParseBin();
 
             public void Execute()
             {
-                if (!File.Exists(_profilePath + "\\" + _selectedProfile + "\\persist.game.json")) return;
+                var targetFile = _profilePath + "\\" + _selectedProfile + "\\persist.game.json";
+
+                if (!File.Exists(targetFile)) return;
 
                 if (!Directory.Exists(@".\temp\"))
-                {
                     Directory.CreateDirectory(@".\temp\");
+
+                File.Copy(targetFile, @".\temp\savedata_in.dson", true);
+
+                try
+                {
+                    TryParseBin();
                 }
-
-                File.Copy(_profilePath + "\\" + _selectedProfile + "\\persist.game.json", @".\temp\savedata_in.dson", true);
-
-                TryParseBin();
+                catch (Exception e)
+                {
+                    MessageBox.Show("The program ran into an error:\n" + e.Message);
+                }
             }
         }
     }

@@ -1,74 +1,75 @@
-﻿//    using DarkestLoadOrder.Json.Savegame;
+﻿//    using DarkestLoadOrder.Serialization.Savegame;
 //    var saveData = SaveData.FromJson(jsonString);
 
 namespace DarkestLoadOrder.Serialization.Savegame
 {
     using System.Collections.Generic;
-    using System.Globalization;
 
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     public partial class SaveData
     {
-        [JsonProperty("__revision_dont_touch", Required = Required.Always)]
+        [JsonProperty("__revision_dont_touch")]
         public long RevisionDontTouch { get; set; }
 
-        [JsonProperty("base_root", Required = Required.Always)]
+        [JsonProperty("base_root")]
         public BaseRoot BaseRoot { get; set; }
     }
 
     public class BaseRoot
     {
-        [JsonProperty("version", Required = Required.Always)]
+        [JsonProperty("version")]
         public long Version { get; set; }
 
-        [JsonProperty("totalelapsed", Required = Required.Always)]
+        [JsonProperty("totalelapsed")]
         public long Totalelapsed { get; set; }
 
-        [JsonProperty("inraid", Required = Required.Always)]
+        [JsonProperty("inraid")]
         public bool Inraid { get; set; }
 
-        [JsonProperty("raiddungeon", Required = Required.Always)]
+        [JsonProperty("raiddungeon")]
         public string Raiddungeon { get; set; }
 
-        [JsonProperty("raid_save", Required = Required.Always)]
+        [JsonProperty("raid_save")]
         public string RaidSave { get; set; }
 
-        [JsonProperty("estatename", Required = Required.Always)]
+        [JsonProperty("estatename")]
         public string Estatename { get; set; }
 
-        [JsonProperty("game_mode", Required = Required.Always)]
+        [JsonProperty("game_mode")]
         public string GameMode { get; set; }
 
-        [JsonProperty("date_time", Required = Required.Always)]
+        [JsonProperty("date_time")]
         public string DateTime { get; set; }
 
-        [JsonProperty("dd_options_altered", Required = Required.Always)]
+        [JsonProperty("dd_options_altered")]
         public bool DdOptionsAltered { get; set; }
 
-        [JsonProperty("profile_options", Required = Required.Always)]
+        [JsonProperty("profile_options")]
         public ProfileOptions ProfileOptions { get; set; }
 
-        [JsonProperty("applied_ugcs_1_0", Required = Required.Always)]
+        [JsonProperty("applied_ugcs_1_0")]
         public Dictionary<string, AppliedUgcs1_0> AppliedUgcs1_0 { get; set; }
 
-        [JsonProperty("persistent_ugcs", Required = Required.Always)]
+        [JsonProperty("persistent_ugcs")]
         public PersistentUgcs PersistentUgcs { get; set; }
 
-        [JsonProperty("presented_dlc", Required = Required.Always)]
+        [JsonProperty("presented_dlc")]
         public PersistentUgcs PresentedDlc { get; set; }
 
-        [JsonProperty("dlc_init", Required = Required.Always)]
+        [JsonProperty("dlc_init")]
         public bool DlcInit { get; set; }
+
+        [JsonProperty("dlc")]
+        public Dictionary<string, AppliedUgcs1_0> Dlc { get; set; }
     }
 
     public class AppliedUgcs1_0
     {
-        [JsonProperty("name", Required = Required.Always)]
+        [JsonProperty("name")]
         public string Name { get; set; }
 
-        [JsonProperty("source", Required = Required.Always)]
+        [JsonProperty("source")]
         public string Source { get; set; }
     }
 
@@ -76,46 +77,46 @@ namespace DarkestLoadOrder.Serialization.Savegame
 
     public class ProfileOptions
     {
-        [JsonProperty("values", Required = Required.Always)]
+        [JsonProperty("values")]
         public Values Values { get; set; }
     }
 
     public class Values
     {
-        [JsonProperty("quest_select_warnings", Required = Required.Always)]
-        public bool[] QuestSelectWarnings { get; set; }
+        [JsonProperty("quest_select_warnings")]
+        public List<bool> QuestSelectWarnings { get; set; }
 
-        [JsonProperty("provision_warnings", Required = Required.Always)]
-        public bool[] ProvisionWarnings { get; set; }
+        [JsonProperty("provision_warnings")]
+        public List<bool> ProvisionWarnings { get; set; }
 
-        [JsonProperty("deck_based_stage_coach", Required = Required.Always)]
-        public bool[] DeckBasedStageCoach { get; set; }
+        [JsonProperty("deck_based_stage_coach")]
+        public List<bool> DeckBasedStageCoach { get; set; }
 
-        [JsonProperty("curio_tracker", Required = Required.Always)]
-        public bool[] CurioTracker { get; set; }
+        [JsonProperty("curio_tracker")]
+        public List<bool> CurioTracker { get; set; }
 
-        [JsonProperty("dd_mode", Required = Required.Always)]
-        public bool[] DdMode { get; set; }
+        [JsonProperty("dd_mode")]
+        public List<bool> DdMode { get; set; }
 
-        [JsonProperty("corpses", Required = Required.Always)]
-        public bool[] Corpses { get; set; }
+        [JsonProperty("corpses")]
+        public List<bool> Corpses { get; set; }
 
-        [JsonProperty("stall_penalty", Required = Required.Always)]
-        public bool[] StallPenalty { get; set; }
+        [JsonProperty("stall_penalty")]
+        public List<bool> StallPenalty { get; set; }
 
-        [JsonProperty("deaths_door_recovery_debuffs", Required = Required.Always)]
-        public bool[] DeathsDoorRecoveryDebuffs { get; set; }
+        [JsonProperty("deaths_door_recovery_debuffs")]
+        public List<bool> DeathsDoorRecoveryDebuffs { get; set; }
 
-        [JsonProperty("retreats_can_fail", Required = Required.Always)]
-        public bool[] RetreatsCanFail { get; set; }
+        [JsonProperty("retreats_can_fail")]
+        public List<bool> RetreatsCanFail { get; set; }
 
-        [JsonProperty("multiplied_enemy_crits", Required = Required.Always)]
-        public bool[] MultipliedEnemyCrits { get; set; }
+        [JsonProperty("multiplied_enemy_crits")]
+        public List<bool> MultipliedEnemyCrits { get; set; }
 
-        [JsonProperty("town_events", Required = Required.Always)]
+        [JsonProperty("town_events")]
         public string TownEvents { get; set; }
 
-        [JsonProperty("never_again", Required = Required.Always)]
+        [JsonProperty("never_again")]
         public string NeverAgain { get; set; }
     }
 
@@ -123,23 +124,7 @@ namespace DarkestLoadOrder.Serialization.Savegame
     {
         public static SaveData FromJson(string json)
         {
-            return JsonConvert.DeserializeObject<SaveData>(json, Converter.Settings);
+            return JsonConvert.DeserializeObject<SaveData>(json);
         }
-    }
-
-    internal static class Converter
-    {
-        public static readonly JsonSerializerSettings Settings = new()
-        {
-            MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
-            DateParseHandling        = DateParseHandling.None,
-            Converters =
-            {
-                new IsoDateTimeConverter
-                {
-                    DateTimeStyles = DateTimeStyles.AssumeUniversal
-                }
-            }
-        };
     }
 }

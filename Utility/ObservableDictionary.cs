@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-
-namespace DarkestLoadOrder.Utility
+﻿namespace DarkestLoadOrder.Utility
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+
     [Serializable]
     public class ObservableDictionary<TKey, TValue> : ObservableCollection<ObservableKeyValuePair<TKey, TValue>>,
         IDictionary<TKey, TValue>
@@ -18,6 +18,7 @@ namespace DarkestLoadOrder.Utility
 
                 return result;
             }
+
             set
             {
                 if (ContainsKey(key))
@@ -46,6 +47,7 @@ namespace DarkestLoadOrder.Utility
         public bool Remove(TKey key)
         {
             var remove = ThisAsCollection().Where(pair => Equals(key, pair.Key)).ToList();
+
             foreach (var pair in remove)
                 ThisAsCollection().Remove(pair);
 
@@ -55,6 +57,7 @@ namespace DarkestLoadOrder.Utility
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
             var pair = GetPairByTheKey(item.Key);
+
             if (Equals(pair, default(ObservableKeyValuePair<TKey, TValue>)))
                 return false;
 
@@ -73,6 +76,7 @@ namespace DarkestLoadOrder.Utility
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
             var pair = GetPairByTheKey(item.Key);
+
             if (Equals(pair, default(ObservableKeyValuePair<TKey, TValue>)))
                 return false;
 
@@ -88,10 +92,11 @@ namespace DarkestLoadOrder.Utility
             value = default;
             var pair = GetPairByTheKey(key);
 
-            if (!Equals(pair, default(ObservableKeyValuePair<TKey, TValue>)))
+            if (Equals(pair, default(ObservableKeyValuePair<TKey, TValue>)))
                 return false;
 
             value = pair.Value;
+
             return true;
         }
 
@@ -105,15 +110,15 @@ namespace DarkestLoadOrder.Utility
         public new IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             return (from i in ThisAsCollection() select new KeyValuePair<TKey, TValue>(i.Key, i.Value)).ToList()
-                .GetEnumerator();
+                                                                                                       .GetEnumerator();
         }
 
         public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> items)
         {
             var arrayofItems = items.ToArray();
+
             if (arrayofItems.Any(i => ContainsKey(i.Key)))
-                throw new ArgumentException(
-                    $"The dictionary already contains the key \"{arrayofItems.First(i => ContainsKey(i.Key)).Key}\"");
+                throw new ArgumentException($"The dictionary already contains the key \"{arrayofItems.First(i => ContainsKey(i.Key)).Key}\"");
 
             foreach (var (key, value) in arrayofItems)
                 Add(key, value);
@@ -122,9 +127,9 @@ namespace DarkestLoadOrder.Utility
         public void AddRange(IEnumerable<ObservableKeyValuePair<TKey, TValue>> items)
         {
             var arrayofItems = items.ToArray();
+
             if (arrayofItems.Any(i => ContainsKey(i.Key)))
-                throw new ArgumentException(
-                    $"The dictionary already contains the key \"{arrayofItems.First(i => ContainsKey(i.Key)).Key}\"");
+                throw new ArgumentException($"The dictionary already contains the key \"{arrayofItems.First(i => ContainsKey(i.Key)).Key}\"");
 
             foreach (var item in arrayofItems)
                 Add(item);
