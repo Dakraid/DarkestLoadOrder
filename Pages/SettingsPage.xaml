@@ -1,0 +1,136 @@
+﻿<ui:Page
+    x:Class="DarkestLoadOrder.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:components="clr-namespace:DarkestLoadOrder.Components"
+    xmlns:system="clr-namespace:System;assembly=System.Runtime"
+    mc:Ignorable="d"
+    DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext}">
+
+    <Page.Resources>
+        <components:AppThemeConverter x:Key="AppThemeConverter" />
+
+        <DataTemplate x:Key="BrushTemplate">
+            <Grid
+                Margin="8"
+                Background="Transparent">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                    BorderThickness="1"
+                    components:DynamicResourceHelper.Property="Border.Background"
+                    components:DynamicResourceHelper.ResourceKey="{Binding}"
+                    Width="126"
+                    Height="51"
+                    VerticalAlignment="Center" />
+
+                <TextBlock
+                    Grid.Column="1"
+                    Text="{Binding}"
+                    VerticalAlignment="Center"
+                    Margin="12,0,0,0" />
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <ScrollViewer>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <GroupBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Margin="24,0" Header="Application Paths">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="10" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="10" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="10" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="btn_SelectSaveFolder"
+                            Grid.Row="0" Grid.Column="0"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            FontSize="14"
+                            Content="Select Savegame Folder..."
+                            Command="{Binding Path=SelectSaveFolder}" />
+
+                    <TextBox x:Name="txb_SaveFolder"
+                             Grid.Row="0" Grid.Column="2"
+                             VerticalAlignment="Stretch"
+                             FontSize="16"
+                             Text="{Binding Application.Settings.SaveFolderPath}" />
+
+                    <Button x:Name="btn_SelectModFolder"
+                            Grid.Row="2" Grid.Column="0"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            FontSize="14"
+                            Content="Select Workshop Folder..."
+                            Command="{Binding Path=SelectModsFolder}" />
+
+                    <TextBox x:Name="txb_ModFolder" 
+                             Grid.Row="2" Grid.Column="2"
+                             VerticalAlignment="Stretch"
+                             FontSize="16"
+                             Text="{Binding Application.Settings.ModFolderPath}" />
+                </Grid>
+            </GroupBox>
+
+            <Grid Grid.Column="0" Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ScrollViewer Grid.Row="1">
+                    <Grid Margin="24,0">
+                        <GroupBox Header="Theme Mode">
+                            <ui:RadioButtons SelectedItem="{Binding Source={x:Static ui:ThemeManager.Current}, Path=ApplicationTheme, Converter={StaticResource AppThemeConverter}}">
+                                <ui:RadioButtons.ItemsSource>
+                                    <components:AppThemes />
+                                </ui:RadioButtons.ItemsSource>
+                            </ui:RadioButtons>
+                        </GroupBox>
+                    </Grid>
+                </ScrollViewer>
+
+                <components:AccentColorPicker Grid.Column="0" Grid.Row="2"
+                    Margin="{StaticResource ControlPageContentMargin}"/>
+            </Grid>
+
+            <GroupBox Grid.Column="1" Grid.Row="1" Margin="{StaticResource ControlPageContentMargin}"
+                      Header="Color Preview"
+                      Style="{StaticResource MahApps.Styles.GroupBox}">
+                <ItemsControl ItemTemplate="{StaticResource BrushTemplate}">
+                    <system:String>Theme.ShowcaseBrush</system:String>
+                    <system:String>MahApps.Brushes.AccentBase</system:String>
+                    <system:String>MahApps.Brushes.Accent</system:String>
+                    <system:String>MahApps.Brushes.Accent2</system:String>
+                    <system:String>MahApps.Brushes.Accent3</system:String>
+                    <system:String>MahApps.Brushes.Accent4</system:String>
+                    <system:String>MahApps.Brushes.Highlight</system:String>
+                </ItemsControl>
+            </GroupBox>
+        </Grid>
+    </ScrollViewer>
+</ui:Page>

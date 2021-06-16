@@ -23,47 +23,17 @@ namespace DarkestLoadOrder.ViewModel
 
     using ModHelper;
 
+    using Threading;
+
     using Utility;
 
     using Application = Model.Application;
     using DragDrop = GongSolutions.Wpf.DragDrop.DragDrop;
 
-    internal class ApplicationViewModel : ViewModelBase, IDropTarget
+    public class ApplicationViewModel : ViewModelBase, IDropTarget
     {
         private Application _application;
-        private Config _config;
-        private bool _loadedProfile;
         private ModDatabase _modDatabase;
-
-        public ApplicationViewModel()
-        {
-            Config = new Config();
-
-            Application = new Application
-            {
-                SaveFolderPath = Config.Properties.SaveFolderPath, ModFolderPath = Config.Properties.ModFolderPath, Profiles = new ObservableCollection<string>(Config.ScanProfiles().Keys)
-            };
-
-            ModDatabase = new ModDatabase();
-
-            if (string.IsNullOrWhiteSpace(_application.ModFolderPath))
-                return;
-
-            ModDatabase.ReadDatabase(Application.ModFolderPath);
-            ResolveMods();
-        }
-
-        public bool LoadedProfile
-        {
-            get => _loadedProfile;
-
-            set
-            {
-                if (Equals(value, _loadedProfile)) return;
-                _loadedProfile = value;
-                OnPropertyChanged();
-            }
-        }
 
         public ModDatabase ModDatabase
         {
@@ -89,16 +59,24 @@ namespace DarkestLoadOrder.ViewModel
             }
         }
 
-        public Config Config
+        public ApplicationViewModel()
         {
-            get => _config;
-
-            set
+            Application = new Application
             {
-                if (Equals(value, _config)) return;
-                _config = value;
-                OnPropertyChanged();
-            }
+                SaveFolderPath = Config.Properties.SaveFolderPath, 
+                ModFolderPath = Config.Properties.ModFolderPath
+            };
+
+            // Outsourced into its own function for async functionality
+            ResolveProfiles();
+
+            ModDatabase = new ModDatabase();
+
+            if (string.IsNullOrWhiteSpace(_application.ModFolderPath))
+                return;
+
+            ModDatabase.ReadDatabase(Application.ModFolderPath);
+            ModDatabase.ResolveMods(this);
         }
 
         void IDropTarget.DragOver(IDropInfo dropInfo)
@@ -133,32 +111,16 @@ namespace DarkestLoadOrder.ViewModel
                 view.Refresh();
         }
 
-        private async void ResolveMods()
+        private async void ResolveProfiles()
         {
-            HashSet<ulong> knownMods = null;
+            var profiles = await Tasks.ProfileScanTask.Execute(Config.Properties.SaveFolderPath);
 
-            if (_modDatabase.KnownMods?.Count > 0)
+            if (profiles == null || profiles.Count == 0)
             {
-                knownMods = new HashSet<ulong>();
-
-                foreach (var (modId, modDatabaseItem) in _modDatabase.KnownMods)
-                {
-                    _application.LocalMods.Add(modId, modDatabaseItem);
-                    knownMods.Add(modId);
-                }
+                Application.Profiles = new ObservableCollection<string>();
+                return;
             }
-
-            Dictionary<ulong, ModLocalItem> newMods;
-
-            if (knownMods?.Count > 0)
-                newMods = await ModResolverOnline.GetModInfos(_application.ModFolderPath, knownMods);
-            else
-                newMods = await ModResolverOnline.GetModInfos(_application.ModFolderPath);
-
-            if (newMods != null)
-                _application.LocalMods.AddRange(newMods);
-
-            _application.ModsLoaded = true;
+            Application.Profiles = new ObservableCollection<string>(profiles.Keys);
         }
 
         public void CloseView()

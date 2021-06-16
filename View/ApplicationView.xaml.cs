@@ -3,7 +3,7 @@
 // Project: DarkestLoadOrder / DarkestLoadOrder
 // Author : Kristian Schlikow (kristian@schlikow.de)
 // Created On : 31.05.2021 00:13
-// Last Modified On : 06.06.2021 14:38
+// Last Modified On : 07.06.2021 10:10
 // Copyrights : Copyright (c) Kristian Schlikow 2021-2021, All Rights Reserved
 // License: License is provided as described within the LICENSE file shipped with the project
 // If present, the license takes precedence over the individual notice within this file
@@ -11,13 +11,18 @@
 
 namespace DarkestLoadOrder.View
 {
+    using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Diagnostics;
     using System.IO;
     using System.Threading;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Data;
+
+    using Microsoft.Win32;
 
     using ModHelper;
 
@@ -41,6 +46,13 @@ namespace DarkestLoadOrder.View
         public ApplicationView()
         {
             InitializeComponent();
+        }
+
+        private bool FilterAvailable(object item)
+        {
+            var dataContext = (ApplicationViewModel) DataContext;
+
+            return string.IsNullOrEmpty(dataContext.Application.SearchAvailable) || ((ObservableKeyValuePair<ulong, ModLocalItem>) item).Value.ModTitle.Contains(dataContext.Application.SearchAvailable, StringComparison.OrdinalIgnoreCase);
         }
 
         private void wnd_MainWindow_Closing(object sender, CancelEventArgs e)
@@ -105,8 +117,6 @@ namespace DarkestLoadOrder.View
                 if (!ulong.TryParse(ugcs.Value.Name, out var modId))
                     continue;
 
-                var item = dataContext.Application.LocalMods.Keys;
-
                 if (!dataContext.Application.LocalMods.TryGetValue(modId, out var modLocalItem))
                     continue;
 
@@ -117,7 +127,11 @@ namespace DarkestLoadOrder.View
                 dataContext.Application.LocalMods.Remove(modId);
             }
 
-            dataContext.LoadedProfile = true;
+            dataContext.Application.LoadedProfile = true;
+
+            var viewAvailable = (CollectionView) CollectionViewSource.GetDefaultView(lbx_AvailableMods.ItemsSource);
+
+            viewAvailable.Filter = FilterAvailable;
         }
 
         private void btn_Undo_Click(object sender, RoutedEventArgs e)
@@ -168,9 +182,6 @@ namespace DarkestLoadOrder.View
                     Name = modItem.Value.ModPublishedId.ToString(), Source = modItem.Value.ModSource
                 };
 
-                // shrug
-                mod.Source = "Steam";
-
                 saveData.BaseRoot.AppliedUgcs1_0.Add(index, mod);
 
                 position++;
@@ -213,6 +224,7 @@ namespace DarkestLoadOrder.View
             var dataContext = (ApplicationViewModel) DataContext;
 
             if (lbx_AvailableMods.SelectedIndex != -1)
+            {
                 foreach (var selectedItem in lbx_AvailableMods.SelectedItems)
                 {
                     var modItem    = (ObservableKeyValuePair<ulong, ModLocalItem>) selectedItem;
@@ -220,7 +232,10 @@ namespace DarkestLoadOrder.View
 
                     Process.Start("explorer.exe", targetPath);
                 }
+                lbx_AvailableMods.SelectedIndex = -1;
+            }
             else if (lbx_LoadOrder.SelectedIndex != -1)
+            {
                 foreach (var selectedItem in lbx_LoadOrder.SelectedItems)
                 {
                     var modItem    = (ObservableKeyValuePair<ulong, ModLocalItem>) selectedItem;
@@ -228,6 +243,125 @@ namespace DarkestLoadOrder.View
 
                     Process.Start("explorer.exe", targetPath);
                 }
+                lbx_LoadOrder.SelectedIndex = -1;
+            }
+        }
+
+        private void click_OpenInSteam(object sender, RoutedEventArgs e)
+        {
+            var dataContext = (ApplicationViewModel) DataContext;
+            var steamExe    = (string) Registry.GetValue("HKEY_CURRENT_USER\\SOFTWARE\\Valve\\Steam", "SteamExe", null);
+            
+            if (string.IsNullOrWhiteSpace(steamExe) || !File.Exists(steamExe))
+            {
+                MessageBox.Show("Could not locate Steam.exe, please make sure you have it installed.", "Steam.exe not found!");
+                return;
+            }
+
+            if (lbx_AvailableMods.SelectedIndex != -1)
+            {
+                foreach (var selectedItem in lbx_AvailableMods.SelectedItems)
+                {
+                    var modItem    = (ObservableKeyValuePair<ulong, ModLocalItem>) selectedItem;
+                    var targetPath = "steam://url/CommunityFilePage/" + modItem.Key;
+
+                    Process.Start(steamExe, targetPath);
+                }
+                lbx_AvailableMods.SelectedIndex = -1;
+            }
+            else if (lbx_LoadOrder.SelectedIndex != -1)
+            {
+                foreach (var selectedItem in lbx_LoadOrder.SelectedItems)
+                {
+                    var modItem    = (ObservableKeyValuePair<ulong, ModLocalItem>) selectedItem;
+                    var targetPath = "steam://url/CommunityFilePage/" + modItem.Key;
+
+                    Process.Start(steamExe, targetPath);
+                }
+                lbx_LoadOrder.SelectedIndex = -1;
+            }
+        }
+
+        private async void txb_AvailableSearch_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            var dataContext = (ApplicationViewModel) DataContext;
+
+            if (string.IsNullOrEmpty(txb_AvailableSearch.Text)) dataContext.Application.SearchAvailable = null;
+
+            async Task<bool> UserKeepsTyping()
+            {
+                var txt = txb_AvailableSearch.Text;
+                await Task.Delay(250);
+
+                return txt != txb_AvailableSearch.Text;
+            }
+
+            if (await UserKeepsTyping() || txb_AvailableSearch.Text == dataContext.Application.SearchAvailable) return;
+            dataContext.Application.SearchAvailable = txb_AvailableSearch.Text;
+
+            CollectionViewSource.GetDefaultView(lbx_AvailableMods.ItemsSource).Refresh();
+        }
+
+        private async void txb_ActiveSearch_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            var dataContext = (ApplicationViewModel) DataContext;
+
+            if (string.IsNullOrEmpty(txb_ActiveSearch.Text)) dataContext.Application.SearchActive = null;
+
+            async Task<bool> UserKeepsTyping()
+            {
+                var txt = txb_ActiveSearch.Text;
+                await Task.Delay(250);
+
+                return txt != txb_ActiveSearch.Text;
+            }
+
+            if (await UserKeepsTyping() || txb_ActiveSearch.Text == dataContext.Application.SearchAvailable) return;
+            dataContext.Application.SearchActive = txb_ActiveSearch.Text;
+
+            if (string.IsNullOrWhiteSpace(dataContext.Application.SearchActive))
+            {
+                lbx_LoadOrder.SelectedItems.Clear();
+                return;
+            }
+
+            foreach (var item in lbx_LoadOrder.Items)
+            {
+                var modItem  = (ObservableKeyValuePair<ulong, ModLocalItem>) item;
+
+                if (!modItem.Value.ModTitle.Contains(dataContext.Application.SearchActive, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                
+                lbx_LoadOrder.SelectedItems.Add(item);
+            }
+        }
+
+        private void btn_Refresh_Click(object sender, RoutedEventArgs e)
+        {
+            var dataContext = (ApplicationViewModel) DataContext;
+
+            dataContext.Application.ActiveMods = new ObservableDictionary<ulong, ModLocalItem>();
+            dataContext.Application.LocalMods  = new ObservableDictionary<ulong, ModLocalItem>();
+
+            dataContext.ModDatabase.ReadDatabase(dataContext.Application.ModFolderPath);
+            dataContext.ModDatabase.ResolveMods(dataContext);
+
+            var saveData = SaveData.FromJson(File.ReadAllText(@".\temp\savedata_in.json"));
+
+            foreach (var ugcs in saveData.BaseRoot.AppliedUgcs1_0)
+            {
+                if (!ulong.TryParse(ugcs.Value.Name, out var modId))
+                    continue;
+
+                if (!dataContext.Application.LocalMods.TryGetValue(modId, out var modLocalItem))
+                    continue;
+
+                modLocalItem.ModPriority = long.Parse(ugcs.Key);
+                modLocalItem.ModSource   = ugcs.Value.Source;
+
+                dataContext.Application.ActiveMods.Add(modId, modLocalItem);
+                dataContext.Application.LocalMods.Remove(modId);
+            }
         }
     }
 }

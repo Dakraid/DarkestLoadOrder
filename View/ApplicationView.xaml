@@ -4,15 +4,21 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:dd="urn:gong-wpf-dragdrop"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:model="clr-namespace:DarkestLoadOrder.ViewModel"
-    xmlns:converter="clr-namespace:DarkestLoadOrder.Utility"
     d:DataContext="{d:DesignInstance Type=model:ApplicationViewModel}"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="{Binding Application.SelectedProfile, FallbackValue=Darkest Load Order Tool, StringFormat=Darkest Load Order Tool | Selected Profile: \{0\}, TargetNullValue=Darkest Load Order Tool}"
+    xmlns:model="clr-namespace:DarkestLoadOrder.ViewModel"
+    xmlns:dd="urn:gong-wpf-dragdrop"
+    xmlns:fa="http://schemas.fontawesome.io/icons/"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:converters="clr-namespace:DarkestLoadOrder.Converters"
+    ui:WindowHelper.UseModernWindowStyle="True"
     Height="599" Width="900" Icon="/DarkestIcon.png"
-    Closing="wnd_MainWindow_Closing">
+    Closing="wnd_MainWindow_Closing"
+    Title="{Binding Application.SelectedProfile, FallbackValue=Darkest Load Order Tool, StringFormat=Darkest Load Order Tool | Selected Profile: \{0\}, TargetNullValue=Darkest Load Order Tool}">
+    <Window.Resources>
+        <converters:BooleanToVisibilityInvertedConverter x:Key="BooleanToVisibilityInvertedConverter" />
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />
@@ -21,79 +27,88 @@
         <TabControl Grid.Row="0" SelectedIndex="0">
             <TabItem Header="Settings">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="30" />
-                        <RowDefinition Height="30" />
-                        <RowDefinition Height="30" />
-                        <RowDefinition Height="30" />
-                        <RowDefinition Height="30" />
-                    </Grid.RowDefinitions>
+                    <GroupBox Header="Game-Specific Settings">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="30" />
+                            </Grid.RowDefinitions>
 
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200" />
-                        <ColumnDefinition Width="1*" />
-                    </Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
 
-                    <Button x:Name="btn_SelectSaveFolder"
-                            Grid.Row="0" Grid.Column="0" Margin="4,2"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                            FontSize="14"
-                            Content="Select Savegame Folder..."
-                            Click="btn_SelectSaveFolder_Click" />
+                            <Button x:Name="btn_SelectSaveFolder"
+                                    Grid.Row="0" Grid.Column="0" Margin="4,2"
+                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                    FontSize="14"
+                                    Content="Select Savegame Folder..."
+                                    Click="btn_SelectSaveFolder_Click" />
 
-                    <TextBox x:Name="txb_SaveFolder"
-                             Grid.Row="0" Grid.Column="1" Margin="4,2"
-                             VerticalAlignment="Stretch"
-                             FontSize="16"
-                             Text="{Binding Application.SaveFolderPath}" />
+                            <TextBox x:Name="txb_SaveFolder"
+                                     Grid.Row="0" Grid.Column="1" Margin="4,2"
+                                     VerticalAlignment="Stretch"
+                                     FontSize="16"
+                                     Text="{Binding Application.SaveFolderPath}" />
 
-                    <Button x:Name="btn_SelectModFolder"
-                            Grid.Row="1" Grid.Column="0" Margin="4,2"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                            FontSize="14"
-                            Content="Select Workshop Folder..."
-                            Click="btn_SelectModFolder_Click" />
+                            <Button x:Name="btn_SelectModFolder"
+                                    Grid.Row="1" Grid.Column="0" Margin="4,2"
+                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                    FontSize="14"
+                                    Content="Select Workshop Folder..."
+                                    Click="btn_SelectModFolder_Click" />
 
-                    <TextBox x:Name="txb_ModFolder" Grid.Row="1" Grid.Column="1" Margin="4,2"
-                             VerticalAlignment="Stretch"
-                             FontSize="16"
-                             Text="{Binding Application.ModFolderPath}" />
+                            <TextBox x:Name="txb_ModFolder" Grid.Row="1" Grid.Column="1" Margin="4,2"
+                                     VerticalAlignment="Stretch"
+                                     FontSize="16"
+                                     Text="{Binding Application.ModFolderPath}" />
 
-                    <Label Grid.Column="0" Grid.Row="2" Margin="4,0"
-                           HorizontalAlignment="Center" VerticalAlignment="Stretch"
-                           FontSize="16"
-                           Content="Select your profile:" />
+                            <Label Grid.Column="0" Grid.Row="2" Margin="4,0"
+                                   HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                                   FontSize="16"
+                                   Content="Select your profile:" />
 
-                    <Label Grid.Column="1" Grid.Row="2" Margin="4,0"
-                           FontSize="16"
-                           HorizontalAlignment="Center" VerticalAlignment="Stretch">
-                        <Label.Style>
-                            <Style TargetType="{x:Type Label}">
-                                <Setter Property="Content" Value="Mods are being loaded. Please wait." />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Application.ModsLoaded}" Value="True">
-                                        <Setter Property="Content"
-                                                Value="Mods have been loaded. You can select your profile now." />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Label.Style>
-                    </Label>
+                            <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal">
+                                <fa:ImageAwesome Margin="4, 4" Icon="Spinner" Spin="True" SpinDuration="1"
+                                                 VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                 Visibility="{Binding Application.ModsLoaded, Converter={StaticResource BooleanToVisibilityInvertedConverter}}" />
 
-                    <Label Grid.Column="1" Grid.Row="3" Margin="4,0"
-                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                           Content="The profile shown here corresponds to the save-slot of your save-file, eg. your save in slot 0 is called 'profile__0'" />
+                                <Label FontSize="14"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Label.Style>
+                                        <Style TargetType="{x:Type Label}">
+                                            <Setter Property="Content" Value="Mods are being loaded. Please wait." />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Application.ModsLoaded}" Value="True">
+                                                    <Setter Property="Content"
+                                                            Value="Mods have been loaded. You can select your profile now." />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Label.Style>
+                                </Label>
+                            </StackPanel>
 
-                    <ComboBox x:Name="cbx_ProfileSelect"
-                              Grid.Row="3" Grid.Column="0" Margin="4,2"
-                              HorizontalContentAlignment="Center"
-                              ItemsSource="{Binding Application.Profiles}"
-                              IsEnabled="{Binding Application.ModsLoaded}"
-                              SelectionChanged="cbx_ProfileSelect_SelectionChanged" />
+                            <Label Grid.Column="1" Grid.Row="3" Margin="4,0"
+                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                   Content="The profile shown here corresponds to the save-slot of your save-file, eg. your save in slot 0 is called 'profile__0'" />
+
+                            <ComboBox x:Name="cbx_ProfileSelect"
+                                      Grid.Row="3" Grid.Column="0" Margin="4,2"
+                                      HorizontalContentAlignment="Center"
+                                      ItemsSource="{Binding Application.Profiles}"
+                                      IsEnabled="{Binding Application.ModsLoaded}"
+                                      SelectionChanged="cbx_ProfileSelect_SelectionChanged" />
+                        </Grid>
+                    </GroupBox>
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Load Order" IsEnabled="{Binding LoadedProfile}">
+            <TabItem Header="Load Order" IsEnabled="{Binding Application.LoadedProfile}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*" />
@@ -105,186 +120,265 @@
                         <RowDefinition Height="30" />
                     </Grid.RowDefinitions>
 
-                    <GroupBox Grid.Column="0" Header="{Binding Path=Application.LocalMods.Count}"
+                    <GroupBox Grid.Column="0"
+                              Header="{Binding Path=Application.LocalMods.Count, TargetNullValue='No Mods Found.', FallbackValue='No Mods Found.'}"
                               HeaderStringFormat="Available Mods: {0}">
-                        <ListBox x:Name="lbx_AvailableMods"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 HorizontalContentAlignment="Stretch"
-                                 dd:DragDrop.UseDefaultEffectDataTemplate="True"
-                                 dd:DragDrop.IsDragSource="True"
-                                 dd:DragDrop.IsDropTarget="True"
-                                 dd:DragDrop.DropTargetAdornerBrush="DarkOrange"
-                                 dd:DragDrop.DropHandler="{Binding}"
-                                 ItemsSource="{Binding Application.LocalMods}"
-                                 SelectionMode="Extended">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="30" />
+                            </Grid.RowDefinitions>
 
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="{x:Type ListBoxItem}">
-                                    <Setter Property="Width"
-                                            Value="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType={x:Type ScrollContentPresenter}}}" />
-                                </Style>
-                            </ListBox.ItemContainerStyle>
+                            <TextBox x:Name="txb_AvailableSearch"
+                                     Grid.Row="0" FontSize="14" VerticalAlignment="Center"
+                                     Text="{Binding Application.SearchAvailable}"
+                                     KeyUp="txb_AvailableSearch_KeyUp">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                                        <Style.Resources>
+                                            <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center"
+                                                         Stretch="None">
+                                                <VisualBrush.Visual>
+                                                    <Label Content="Search..." Foreground="LightGray" />
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Style.Resources>
+                                        <Style.Triggers>
+                                            <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                                                <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                            </Trigger>
+                                            <Trigger Property="Text" Value="{x:Null}">
+                                                <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                            </Trigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter Property="Background" Value="White" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
 
-                            <ListBox.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Open in Explorer..." Click="click_OpenInExplorer" />
-                                </ContextMenu>
-                            </ListBox.ContextMenu>
+                            <ListBox Grid.Row="1"
+                                     x:Name="lbx_AvailableMods"
+                                     HorizontalContentAlignment="Stretch"
+                                     SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                                     dd:DragDrop.IsDragSource="True"
+                                     dd:DragDrop.IsDropTarget="True"
+                                     dd:DragDrop.DropTargetAdornerBrush="DarkOrange"
+                                     dd:DragDrop.DropHandler="{Binding}"
+                                     ItemsSource="{Binding Application.LocalMods}">
 
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2">
-                                        <Grid.Effect>
-                                            <DropShadowEffect ShadowDepth="2" BlurRadius="4" />
-                                        </Grid.Effect>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="60" />
-                                            <ColumnDefinition Width="1*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="30" />
-                                            <RowDefinition Height="30" />
-                                        </Grid.RowDefinitions>
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="{x:Type ListBoxItem}">
+                                        <Setter Property="Width"
+                                                Value="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType={x:Type ScrollContentPresenter}}}" />
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
 
-                                        <Border x:Name="brd_Avail" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2"
-                                                BorderThickness="1">
-                                            <Border.BorderBrush>
-                                                <SolidColorBrush Color="Black" />
-                                            </Border.BorderBrush>
-                                            <Border.Background>
-                                                <SolidColorBrush Color="White" />
-                                            </Border.Background>
-                                        </Border>
+                                <ListBox.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Open in Explorer..." Click="click_OpenInExplorer" />
+                                        <MenuItem Header="Open in Steam..." Click="click_OpenInSteam" />
+                                    </ContextMenu>
+                                </ListBox.ContextMenu>
 
-                                        <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Margin="1"
-                                               Source="{Binding Path= Value.ModThumbnail}" />
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2">
+                                            <Grid.Effect>
+                                                <DropShadowEffect ShadowDepth="2" BlurRadius="4" />
+                                            </Grid.Effect>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="60" />
+                                                <ColumnDefinition Width="1*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="30" />
+                                                <RowDefinition Height="30" />
+                                            </Grid.RowDefinitions>
 
-                                        <Label Grid.Column="1" Grid.Row="0"
-                                               FontSize="14" FontWeight="Bold"
-                                               HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                                               Content="{Binding Path= Value.ModTitle}" />
+                                            <Border x:Name="brd_Avail" Grid.Column="0" Grid.ColumnSpan="2"
+                                                    Grid.RowSpan="2"
+                                                    BorderThickness="1">
+                                                <Border.BorderBrush>
+                                                    <SolidColorBrush Color="Black" />
+                                                </Border.BorderBrush>
+                                                <Border.Background>
+                                                    <SolidColorBrush Color="White" />
+                                                </Border.Background>
+                                            </Border>
 
-                                        <Label Grid.Column="1" Grid.Row="1"
-                                               HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                                               Content="{Binding Path=Value.ModDescription}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                                            <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Margin="1"
+                                                   Source="{Binding Path= Value.ModThumbnail}" />
+
+                                            <Label Grid.Column="1" Grid.Row="0"
+                                                   FontSize="14" FontWeight="Bold"
+                                                   HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                                   Content="{Binding Path= Value.ModTitle}" />
+
+                                            <Label Grid.Column="1" Grid.Row="1"
+                                                   HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                                   Content="{Binding Path=Value.ModDescription}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <Button x:Name="btn_SortAvail" Grid.Row="2" Margin="0,4"
+                                    Content="Sort Available Alphabetically"
+                                    Click="btn_SortAvail_Click" />
+                        </Grid>
                     </GroupBox>
-                    <GroupBox Grid.Column="1" Header="{Binding Path=Application.ActiveMods.Count}"
+
+                    <GroupBox Grid.Row="0" Grid.Column="1"
+                              Header="{Binding Path=Application.ActiveMods.Count, TargetNullValue='No Mods Found.', FallbackValue='No Mods Found.'}"
                               HeaderStringFormat="Active Mods: {0}">
-                        <ListBox x:Name="lbx_LoadOrder"
-                                 HorizontalContentAlignment="Stretch"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 dd:DragDrop.UseDefaultEffectDataTemplate="True"
-                                 dd:DragDrop.IsDragSource="True"
-                                 dd:DragDrop.IsDropTarget="True"
-                                 dd:DragDrop.DropTargetAdornerBrush="Blue"
-                                 dd:DragDrop.DropHandler="{Binding}"
-                                 ItemsSource="{Binding Application.ActiveMods}"
-                                 SelectionMode="Extended">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="30" />
+                            </Grid.RowDefinitions>
 
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="{x:Type ListBoxItem}">
-                                    <Setter Property="Width"
-                                            Value="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType={x:Type ScrollContentPresenter}}}" />
-                                </Style>
-                            </ListBox.ItemContainerStyle>
+                            <TextBox x:Name="txb_ActiveSearch"
+                                     Grid.Row="0" FontSize="14" VerticalAlignment="Center"
+                                     Text="{Binding Application.SearchActive}"
+                                     KeyUp="txb_ActiveSearch_KeyUp">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                                        <Style.Resources>
+                                            <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center"
+                                                         Stretch="None">
+                                                <VisualBrush.Visual>
+                                                    <Label Content="Search..." Foreground="LightGray" />
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Style.Resources>
+                                        <Style.Triggers>
+                                            <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                                                <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                            </Trigger>
+                                            <Trigger Property="Text" Value="{x:Null}">
+                                                <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                            </Trigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter Property="Background" Value="White" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
 
-                            <ListBox.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Open in Explorer..." Click="click_OpenInExplorer" />
-                                </ContextMenu>
-                            </ListBox.ContextMenu>
+                            <ListBox Grid.Row="1" x:Name="lbx_LoadOrder"
+                                     HorizontalContentAlignment="Stretch"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                                     dd:DragDrop.IsDragSource="True"
+                                     dd:DragDrop.IsDropTarget="True"
+                                     dd:DragDrop.DropTargetAdornerBrush="Blue"
+                                     dd:DragDrop.DropHandler="{Binding}"
+                                     ItemsSource="{Binding Application.ActiveMods}"
+                                     SelectionMode="Extended">
 
-                            <ListBox.Resources>
-                                <converter:ListItemToPositionConverter x:Key="listItemToPositionConverter" />
-                            </ListBox.Resources>
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="{x:Type ListBoxItem}">
+                                        <Setter Property="Width" Value="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType={x:Type ScrollContentPresenter}}}" />
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
 
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2">
-                                        <Grid.Effect>
-                                            <DropShadowEffect ShadowDepth="2" BlurRadius="4" />
-                                        </Grid.Effect>
+                                <ListBox.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Open in Explorer..." Click="click_OpenInExplorer" />
+                                        <MenuItem Header="Open in Steam..." Click="click_OpenInSteam" />
+                                    </ContextMenu>
+                                </ListBox.ContextMenu>
 
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="60" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="1*" />
-                                        </Grid.ColumnDefinitions>
+                                <ListBox.Resources>
+                                    <converters:ListItemToPositionConverter x:Key="listItemToPositionConverter" />
+                                </ListBox.Resources>
 
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="30" />
-                                            <RowDefinition Height="30" />
-                                        </Grid.RowDefinitions>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2">
+                                            <Grid.Effect>
+                                                <DropShadowEffect ShadowDepth="2" BlurRadius="4" />
+                                            </Grid.Effect>
 
-                                        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
-                                                BorderThickness="1">
-                                            <Border.BorderBrush>
-                                                <SolidColorBrush Color="Black" />
-                                            </Border.BorderBrush>
-                                            <Border.Background>
-                                                <SolidColorBrush Color="White" />
-                                            </Border.Background>
-                                        </Border>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="60" />
+                                                <ColumnDefinition Width="1*" />
+                                                <ColumnDefinition Width="1*" />
+                                            </Grid.ColumnDefinitions>
 
-                                        <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Margin="1"
-                                               Source="{Binding Path= Value.ModThumbnail}" />
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="30" />
+                                                <RowDefinition Height="30" />
+                                            </Grid.RowDefinitions>
 
-                                        <Label Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2"
-                                               FontSize="14" FontWeight="Bold"
-                                               HorizontalAlignment="Left" VerticalAlignment="Center"
-                                               Content="{Binding Path= Value.ModTitle}" />
+                                            <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
+                                                    BorderThickness="1">
+                                                <Border.BorderBrush>
+                                                    <SolidColorBrush Color="Black" />
+                                                </Border.BorderBrush>
+                                                <Border.Background>
+                                                    <SolidColorBrush Color="White" />
+                                                </Border.Background>
+                                            </Border>
 
-                                        <Label Grid.Column="1" Grid.Row="1"
-                                               HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                                            <Label.Content>
-                                                <TextBlock>
-                                                    <TextBlock.Text>
-                                                        <MultiBinding StringFormat="Priority: {1} (was {0})">
-                                                            <Binding Path="Value.ModPriority" />
-                                                            <Binding Path=""
-                                                                     Converter="{StaticResource listItemToPositionConverter}"
-                                                                     RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBoxItem}}" />
-                                                        </MultiBinding>
-                                                    </TextBlock.Text>
-                                                </TextBlock>
-                                            </Label.Content>
-                                        </Label>
+                                            <Image Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Margin="1"
+                                                   Source="{Binding Path= Value.ModThumbnail}" />
 
-                                        <Label Grid.Column="2" Grid.Row="1"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"
-                                               Content="{Binding Path= Value.ModSource}"
-                                               ContentStringFormat="Source: {0}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                                            <Label Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2"
+                                                   FontSize="14" FontWeight="Bold"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                   Content="{Binding Path= Value.ModTitle}" />
+
+                                            <Label Grid.Column="1" Grid.Row="1"
+                                                   HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                                <Label.Content>
+                                                    <TextBlock>
+                                                        <TextBlock.Text>
+                                                            <MultiBinding StringFormat="Priority: {1} (was {0})">
+                                                                <Binding Path="Value.ModPriority" />
+                                                                <Binding Path=""
+                                                                         Converter="{StaticResource listItemToPositionConverter}"
+                                                                         RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBoxItem}}" />
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+                                                </Label.Content>
+                                            </Label>
+
+                                            <Label Grid.Column="2" Grid.Row="1"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                   Content="{Binding Path= Value.ModSource}"
+                                                   ContentStringFormat="Source: {0}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <Button x:Name="btn_SaveProfile" Grid.Row="2" Margin="0,4"
+                                    Content="Save Load Order"
+                                    Click="btn_SaveProfile_Click" />
+                        </Grid>
                     </GroupBox>
+
                     <Grid Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="1*" />
-                            <ColumnDefinition Width="1*" />
-                            <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
 
-                        <Button x:Name="btn_SortAvail" Grid.Column="0" Margin="2,4"
-                                Content="Sort Available Alphabetically"
-                                Click="btn_SortAvail_Click" />
+                        <Button x:Name="btn_Refresh" Grid.Column="0" Margin="2,4"
+                                Content="Refresh All Mods"
+                                Click="btn_Refresh_Click" />
 
-                        <Button Grid.Column="1" Margin="2,4,2,4"
-                                Content="TBD" />
-
-                        <Button x:Name="btn_Undo" Grid.Column="2" Margin="2,4"
+                        <Button x:Name="btn_Undo" Grid.Column="1" Margin="2,4"
                                 Content="Undo Changes"
                                 Click="btn_Undo_Click" />
-
-                        <Button x:Name="btn_SaveProfile" Grid.Column="3" Margin="2,4"
-                                Content="Save Load Order"
-                                Click="btn_SaveProfile_Click" />
                     </Grid>
                 </Grid>
             </TabItem>

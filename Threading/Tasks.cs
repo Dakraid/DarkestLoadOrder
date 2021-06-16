@@ -12,12 +12,48 @@
 namespace DarkestLoadOrder.Threading
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
     using System.Windows;
 
     internal class Tasks
     {
+        public class ProfileScanTask
+        {
+            public static async Task<Dictionary<string, string>> Execute(string savePath)
+            {
+                return await Task.Run(() => {
+                    if (string.IsNullOrWhiteSpace(savePath) || !Directory.Exists(savePath))
+                        return null;
+
+                    var files = Directory.GetFiles(savePath).ToList();
+
+                    if (!files.Select(Path.GetFileName).Contains("steam_init.json"))
+                    {
+                        MessageBox.Show("The application could not find 'steam_init.json', please make sure you selected the right folder.");
+
+                        return null;
+                    }
+
+                    var directories = Directory.GetDirectories(savePath).Where(dir => dir.Contains("profile")).ToList();
+                    var profiles = directories.Select(d => (string) Path.GetFileName(d) ).ToList();
+
+                    if (profiles.Count != 0)
+                        return profiles.Zip(directories, (k, v) => new
+                                       {
+                                           k, v
+                                       })
+                                       .ToDictionary(x => x.k, x => x.v);
+
+                    MessageBox.Show("The application could not find any valid profile folders, please make sure you have selected the right folder and have a saved game.");
+                    return null;
+                });
+            }
+        }
+
         public class SaveProfileTask
         {
             private readonly string _profilePath;

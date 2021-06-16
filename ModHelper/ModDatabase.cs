@@ -17,60 +17,82 @@ namespace DarkestLoadOrder.ModHelper
 
     using Newtonsoft.Json;
 
+    using Utility;
+
+    using ViewModel;
+
     public class ModDatabase
     {
-        private const string DBPath = @".\DarkestLoadOrder.database.json";
+        private const string DbPath = @".\DarkestLoadOrder.database.json";
+        private readonly ModernApplicationViewModel _parentContext;
 
-        private string _databaseText;
-
-        public Dictionary<ulong, ModDatabaseItem> KnownMods = new();
-
-        public ModDatabase()
+        public ModDatabase(ModernApplicationViewModel context)
         {
+            _parentContext = context;
+
             ReadDatabase();
         }
 
-        public void ReadDatabase(string modFolderPath = "")
+        public async void ReadMods()
         {
-            if (!File.Exists(DBPath))
+            HashSet<ulong> knownMods = null;
+
+            if (_parentContext.Application.LocalMods?.Count > 0)
+            {
+                knownMods = new HashSet<ulong>();
+
+                foreach (var (modId, _) in _parentContext.Application.LocalMods)
+                {
+                    knownMods.Add(modId);
+                }
+            }
+
+            Dictionary<ulong, ModLocalItem> newMods;
+
+            if (knownMods?.Count > 0)
+                newMods = await ModResolverOnline.GetModInfos(_parentContext.Application.Settings.ModFolderPath, knownMods);
+            else
+                newMods = await ModResolverOnline.GetModInfos(_parentContext.Application.Settings.ModFolderPath);
+            
+            _parentContext.Application.LocalMods ??= new ObservableDictionary<ulong, ModLocalItem>();
+
+            newMods?.ToList().ForEach(x => _parentContext.Application.LocalMods[x.Key] = x.Value);
+
+            _parentContext.Application.ModsLoaded = true;
+        }
+
+        public void ReadDatabase()
+        {
+            if (!File.Exists(DbPath))
                 return;
 
-            _databaseText = File.ReadAllText(DBPath);
-
-            var tempItems = JsonConvert.DeserializeObject<Dictionary<ulong, ModDatabaseItem>>(_databaseText);
+            var tempItems = JsonConvert.DeserializeObject<Dictionary<ulong, ModLocalItem>>(File.ReadAllText(DbPath));
 
             if (tempItems == null || tempItems.Count == 0)
                 return;
 
-            List<ulong> existingMods = new();
+            _parentContext.Application.LocalMods ??= new ObservableDictionary<ulong, ModLocalItem>();
 
-            if (!string.IsNullOrWhiteSpace(modFolderPath))
+            if (_parentContext.Application.LocalMods.Count > 0)
             {
-                var directories = Directory.GetDirectories(modFolderPath);
-
-                if (directories.Length != 0)
-                {
-                    foreach (var directory in directories)
-                    {
-                        var files = Directory.GetFiles(directory).ToHashSet();
-
-                        if (!files.TryGetValue(directory + "\\project.xml", out var projectFile))
-                            continue;
-
-                        var modId = Path.GetFileName(directory);
-                        existingMods.Add(ulong.Parse(modId));
-                    }
-
-                    tempItems = tempItems.Where(x => existingMods.Contains(x.Key)).ToDictionary(x => x.Key, x => x.Value);
-                }
+                tempItems.ToList().ForEach(x => _parentContext.Application.LocalMods[x.Key] = x.Value);
+            }
+            else
+            {
+                _parentContext.Application.LocalMods.AddRange(tempItems);
             }
 
-            KnownMods = tempItems;
+            foreach (var localMod in _parentContext.Application.LocalMods)
+            {
+                localMod.Value.ModPriority = -1;
+            }
+
+            _parentContext.Application.ModsLoaded = true;
         }
 
         public void WriteDatabase()
         {
-            File.WriteAllText(DBPath, JsonConvert.SerializeObject(KnownMods));
+            File.WriteAllText(DbPath, JsonConvert.SerializeObject(_parentContext.Application.LocalMods));
         }
     }
 }

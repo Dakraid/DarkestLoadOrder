@@ -1,15 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// Filename : ValueConverters.cs
-// Project: DarkestLoadOrder / DarkestLoadOrder
-// Author : Kristian Schlikow (kristian@schlikow.de)
-// Created On : 02.06.2021 12:05
-// Last Modified On : 06.06.2021 14:38
-// Copyrights : Copyright (c) Kristian Schlikow 2021-2021, All Rights Reserved
-// License: License is provided as described within the LICENSE file shipped with the project
-// If present, the license takes precedence over the individual notice within this file
-// --------------------------------------------------------------------------------------------------------------------
-
-namespace DarkestLoadOrder.Utility
+﻿namespace DarkestLoadOrder.Converters
 {
     using System;
     using System.Globalization;
@@ -27,10 +16,7 @@ namespace DarkestLoadOrder.Utility
 
             var lb = FindAncestor<ListBox>(item);
 
-            if (lb == null)
-                return null;
-
-            var index = lb.Items.IndexOf(item.Content);
+            var index = lb?.Items.IndexOf(item.Content);
 
             return index;
         }

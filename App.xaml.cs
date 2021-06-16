@@ -23,19 +23,36 @@ namespace DarkestLoadOrder
     /// </summary>
     public partial class App : Application
     {
+        private const string tempDir = @".\temp\";
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            var files = Directory.GetFiles(@".\temp\");
+            if (Directory.Exists(tempDir))
+            {
+                var files = Directory.GetFiles(tempDir);
 
-            foreach (var file in files)
-                File.Delete(file);
+                foreach (var file in files)
+                    File.Delete(file);
+            }
+            else
+            {
+                Directory.CreateDirectory(tempDir);
+            }
 
-            var applicationView      = new ApplicationView();
-            var applicationViewModel = new ApplicationViewModel();
-            applicationView.DataContext = applicationViewModel;
-            applicationView.Show();
+            var model = new ModernApplicationViewModel();
+
+            var view = new ModernApplicationView
+            {
+                DataContext = model
+            };
+
+            view.Show();
+            //var applicationView      = new ApplicationView();
+            //var applicationViewModel = new ApplicationViewModel();
+            //applicationView.DataContext = applicationViewModel;
+            //applicationView.Show();
         }
     }
 }
